@@ -155,8 +155,8 @@ task :bump do
   version = Gem::Version.new(serverset_template['contentVersion'])
   new_version = "#{version.bump.to_s}.0"
   serverset_template['contentVersion'] = new_version
-  
-  File.write contnet_file, JSON.pretty_generate(serverset_template)
+
+  File.write content_file, JSON.pretty_generate(serverset_template)
   sh <<-CDE
     git add #{content_file}
     git commit -m "bumping version from #{version} to #{new_version}"

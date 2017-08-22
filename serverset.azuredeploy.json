@@ -1,454 +1,465 @@
 {
-    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
-    "contentVersion": "1.0.0.0",
-    "parameters": {
-        "adminUserName": {
-            "type": "string",
-            "minLength": 1
-        },
-        "adminPassword": {
-            "type": "securestring"
-        },
-        "chefBase64ValidatorKey": {
-            "type": "string",
-            "defaultValue": ""
-        },
-        "product": {
-            "type": "object",
-            "defaultValue": {
-                "name": "chf",
-                "tier_name": "web"
-            }
-        },
-        "network": {
-            "type": "object",
-            "defaultValue": {
-                "virtualNetwork": {
-                    "name": "defaultVNet",
-                    "resourceGroup": "SecNet"
-                },
-                "subnet": {
-                    "name": "defaultWeb",
-                    "vmBaseIP": "10.0.42",
-                    "lastOctetStart": "7"
-                },
-                "loadBalancing": {
-                    "enabled": true,
-                    "ipType": "Private",
-                    "ipConfiguration": {
-                        "public": {
-                            "name": "DNE",
-                            "resourceGroup": "DNE"
-                        },
-                        "private": {
-                            "subnet": "defaultWeb",
-                            "staticIP": "10.0.42.6"
-                        }
-                    },
-                    "rules": {
-                        "take": "one",
-                        "first": {
-                            "port": 80,
-                            "backendPort": 80,
-                            "timeout": 5
-                        },
-                        "second": {
-                            "port": 443,
-                            "backendPort": 443,
-                            "timeout": 5
-                        }
-                    }
-                }
-            }
-        },
-        "infrastructure": {
-            "type": "object",
-            "defaultValue": {
-                "numberOfServers": 2,
-                "serverSize": "Standard_A1",
-                "operatingSystem": {
-                    "imagePublisher": "OpenLogic",
-                    "imageOffer": "CentOS",
-                    "version": "7.3"
-                },
-                "disk": {
-                    "osDriveStorageAccountSize": "Standard_LRS",
-                    "attachedDisk": {
-                        "enabled": false,
-                        "type": "Standard_LRS",
-                        "sizeGB": 40
-                    }
-                }
-            }
-        },
-        "chef": {
-            "type": "object",
-            "defaultValue": {
-                "enabled": false,
-                "policyGroup": "tech_demo",
-                "policyName": "web_server",
-                "validatorClientName": "POCValidator",
-                "serverUrl": "https://POCChefServer.pocdomain.com",
-                "organization": "ncr",
-                "version": "13.1.31"
-            }
-        }
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.1.0",
+  "parameters": {
+    "adminUserName": {
+      "type": "string",
+      "minLength": 1
     },
-    "variables": {
-        "namingInfix": "[toLower(concat(parameters('product').name, parameters('product').tier_name))]",
-        "avSetName": "[concat(variables('namingInfix'),'avset')]",
-        "nicBaseName": "[concat(variables('namingInfix'),'nic')]",
-        "vmBaseName": "[concat(variables('namingInfix'),'vm')]",
-        "vnetID": "[resourceId(parameters('network').virtualNetwork.resourceGroup, 'Microsoft.Network/virtualNetworks', parameters('network').virtualNetwork.name)]",
-        "vmSubnetRef": "[concat(variables('vnetID'), '/subnets/', parameters('network').subnet.name)]",
-        "lbName": "[concat(variables('namingInfix'),'loadbalancer')]",
-        "lbIPScope": "[toLower(parameters('network').loadbalancing.ipType)]",
-        "lbSubnetRef": "[concat(variables('vnetID'), '/subnets/', parameters('network').loadbalancing.ipConfiguration.private.subnet)]",
-        "lbID": "[resourceId('Microsoft.Network/loadBalancers',variables('lbName'))]",
-        "backEndAddressPoolID": "[concat(variables('lbID'), '/backendAddressPools/BackendPool')]",
-        "backendAddressPools": {
-            "true": [
-                {
-                    "id": "[variables('backEndAddressPoolID')]"
-                }
-            ],
-            "false": []
-        },
-        "lbFrontEndIPConfigruations": {
-            "public": [
-                {
-                    "name": "LoadBalancerFrontend",
-                    "properties": {
-                        "publicIPAddress": {
-                            "id": "[resourceId(parameters('network').loadbalancing.ipConfiguration.public.resourceGroup, 'Microsoft.Network/publicIPAddresses',parameters('network').loadbalancing.ipConfiguration.public.name)]"
-                        }
-                    }
-                }
-            ],
-            "private": [
-                {
-                    "name": "LoadBalancerFrontend",
-                    "properties": {
-                        "subnet": {
-                            "id": "[variables('lbSubnetRef')]"
-                        },
-                        "privateIPAddress": "[parameters('network').loadbalancing.ipConfiguration.private.staticIP]",
-                        "privateIPAllocationMethod": "Static"
-                    }
-                }
-            ]
-        },
-        "lbRuleNameBase": "lbrule",
-        "firstLBRulePort": "[parameters('network').loadbalancing.rules.first.port]",
-        "firstLBRuleBackendPort": "[parameters('network').loadbalancing.rules.first.backendPort]",
-        "firstLBRuleTimeout": "[parameters('network').loadbalancing.rules.first.timeout]",
-        "firstLBRule": {
-            "name": "[concat(variables('lbRuleNameBase'),'P', variables('firstLBRulePort'))]",
-            "properties": {
-                "frontendIPConfiguration": {
-                    "id": "[concat(variables('lbID'),'/frontendIPConfigurations/LoadBalancerFrontend')]"
-                },
-                "backendAddressPool": {
-                    "id": "[concat(variables('lbID'),'/backendAddressPools/BackendPool')]"
-                },
-                "protocol": "Tcp",
-                "frontendPort": "[variables('firstLBRulePort')]",
-                "backendPort": "[variables('firstLBRuleBackendPort')]",
-                "enableFloatingIP": false,
-                "idleTimeoutInMinutes": "[variables('firstLBRuleTimeout')]",
-                "probe": {
-                    "id": "[concat(variables('lbID'),'/probes/',variables('lbRuleNameBase'),'probeP', variables('firstLBRulePort'))]"
-                }
-            }
-        },
-        "secondLBRulePort": "[parameters('network').loadbalancing.rules.second.port]",
-        "secondLBRuleBackendPort": "[parameters('network').loadbalancing.rules.second.backendPort]",
-        "secondLBRuleTimeout": "[parameters('network').loadbalancing.rules.second.timeout]",
-        "secondLBRule": {
-            "name": "[concat(variables('lbRuleNameBase'),'P', variables('secondLBRulePort'))]",
-            "properties": {
-                "frontendIPConfiguration": {
-                    "id": "[concat(variables('lbID'),'/frontendIPConfigurations/LoadBalancerFrontend')]"
-                },
-                "backendAddressPool": {
-                    "id": "[concat(variables('lbID'),'/backendAddressPools/BackendPool')]"
-                },
-                "protocol": "Tcp",
-                "frontendPort": "[variables('secondLBRulePort')]",
-                "backendPort": "[variables('secondLBRuleBackendPort')]",
-                "enableFloatingIP": false,
-                "idleTimeoutInMinutes": "[variables('secondLBRuleTimeout')]",
-                "probe": {
-                    "id": "[concat(variables('lbID'),'/probes/',variables('lbRuleNameBase'),'probeP', variables('secondLBRulePort'))]"
-                }
-            }
-        },
-        "lbRules": {
-            "none": [],
-            "one": [
-                "[variables('firstLBRule')]"
-            ],
-            "two": [
-                "[variables('firstLBRule')]",
-                "[variables('secondLBRule')]"
-            ]
-        },
-        "firstLBProbe": {
-            "name": "[concat(variables('lbRuleNameBase'),'probeP', variables('firstLBRulePort'))]",
-            "properties": {
-                "intervalInSeconds": 5,
-                "numberOfProbes": 2,
-                "port": "[variables('firstLBRulePort')]",
-                "protocol": "Tcp"
-            }
-        },
-        "secondLBProbe": {
-            "name": "[concat(variables('lbRuleNameBase'),'probeP', variables('secondLBRulePort'))]",
-            "properties": {
-                "intervalInSeconds": 5,
-                "numberOfProbes": 2,
-                "port": "[variables('secondLBRulePort')]",
-                "protocol": "Tcp"
-            }
-        },
-        "lbProbes": {
-            "one": [
-                "[variables('firstLBProbe')]"
-            ],
-            "two": [
-                "[variables('firstLBProbe')]",
-                "[variables('secondLBProbe')]"
-            ]
-        },
-        "nicDependency": {
-            "true": "[concat('Microsoft.Network/loadBalancers/', variables('lbName'))]",
-            "false": "[concat('Microsoft.Compute/availabilitySets/', variables('avSetName'))]"
-        },
-        "chefExtensionType": {
-            "WindowsServer": "ChefClient",
-            "CentOS": "LinuxChefClient"
-        },
-        "attachedDiskConfig": {
-            "true": [
-                {
-                    "diskSizeGB": "[parameters('infrastructure').disk.attachedDisk.sizeGB]",
-                    "lun": 0,
-                    "createOption": "Empty"
-                }
-            ],
-            "false": []
-        }
+    "adminPassword": {
+      "type": "securestring"
     },
-    "resources": [
-        {
-            "name": "[variables('avSetName')]",
-            "type": "Microsoft.Compute/availabilitySets",
-            "location": "[resourceGroup().location]",
-            "apiVersion": "2016-04-30-preview",
-            "dependsOn": [],
-            "tags": {
-                "displayName": "[variables('avSetName')]"
-            },
-            "properties": {
-                "platformUpdateDomainCount": 5,
-                "platformFaultDomainCount": 2
-            },
-            "sku": {
-                "name": "Aligned"
-            }
+    "chefBase64ValidatorKey": {
+      "type": "string",
+      "defaultValue": ""
+    },
+    "product": {
+      "type": "object",
+      "defaultValue": {
+        "name": "chf",
+        "tier_name": "web"
+      }
+    },
+    "network": {
+      "type": "object",
+      "defaultValue": {
+        "virtualNetwork": {
+          "name": "defaultVNet",
+          "resourceGroup": "SecNet"
         },
-        {
-            "apiVersion": "2016-03-30",
-            "type": "Microsoft.Network/loadBalancers",
-            "name": "[variables('lbName')]",
-            "location": "[resourceGroup().location]",
-            "condition": "[parameters('network').loadBalancing.enabled]",
-            "tags": {
-                "displayName": "[variables('lbName')]"
-            },
-            "properties": {
-                "availabilitySet": {
-                    "id": "[resourceId('Microsoft.Compute/availabilitySets',variables('avSetName'))]"
-                },
-                "frontendIPConfigurations": "[variables('lbFrontEndIPConfigruations')[variables('lbIPScope')]]",
-                "backendAddressPools": [
-                    {
-                        "name": "BackendPool"
-                    }
-                ],
-                "loadBalancingRules": "[variables('lbRules')[toLower(parameters('network').loadBalancing.rules.take)]]",
-                "probes": "[variables('lbProbes')[toLower(parameters('network').loadBalancing.rules.take)]]"
-            }
+        "subnet": {
+          "name": "defaultWeb",
+          "vmBaseIP": "10.0.42",
+          "lastOctetStart": "7"
         },
-        {
-            "name": "[concat(variables('nicBaseName'),copyIndex())]",
-            "type": "Microsoft.Network/networkInterfaces",
-            "location": "[resourceGroup().location]",
-            "dependsOn": [
-                "[variables('nicDependency')[string(parameters('network').loadBalancing.enabled)]]"
-            ],
-            "copy": {
-                "name": "[concat(variables('namingInfix'),'NicLoop')]",
-                "count": "[parameters('infrastructure').numberOfServers]"
+        "loadBalancing": {
+          "enabled": true,
+          "ipType": "Private",
+          "ipConfiguration": {
+            "public": {
+              "name": "DNE",
+              "resourceGroup": "DNE"
             },
-            "apiVersion": "2017-06-01",
-            "tags": {
-                "displayName": "[concat(variables('namingInfix'),'Nic',copyIndex())]"
-            },
-            "properties": {
-                "ipConfigurations": [
-                    {
-                        "name": "primary",
-                        "properties": {
-                            "privateIPAllocationMethod": "Static",
-                            "privateIPAddress": "[concat(parameters('network').subnet.vmBaseIP, '.', add(parameters('network').subnet.lastOctetStart,copyIndex()))]",
-                            "subnet": {
-                                "id": "[variables('vmSubnetRef')]"
-                            },
-                            "loadBalancerBackendAddressPools": "[variables('backendAddressPools')[string(parameters('network').loadBalancing.enabled)]]",
-                            "loadBalancerInboundNatRules": []
-                        }
-                    }
-                ]
+            "private": {
+              "subnet": "defaultWeb",
+              "staticIP": "10.0.42.6"
             }
-        },
-        {
-            "type": "Microsoft.Compute/disks",
-            "name": "[concat(variables('vmBaseName'), 'DataDisk', copyIndex())]",
-            "condition": "[parameters('infrastructure').disk.attachedDisk.enabled]",
-            "apiVersion": "2016-04-30-preview",
-            "location": "[resourceGroup().location]",
-            "copy": {
-                "name": "[concat(variables('namingInfix'),'DiskLoop')]",
-                "count": "[parameters('infrastructure').numberOfServers]"
+          },
+          "rules": {
+            "take": "one",
+            "first": {
+              "port": 80,
+              "backendPort": 80,
+              "timeout": 5
             },
-            "properties": {
-                "creationData": {
-                    "createOption": "Empty"
-                },
-                "accountType": "[parameters('infrastructure').disk.attachedDisk.type]",
-                "diskSizeGB": "[parameters('infrastructure').disk.attachedDisk.sizeGB]"
+            "second": {
+              "port": 443,
+              "backendPort": 443,
+              "timeout": 5
             }
-        },
-        {
-            "name": "[concat(variables('vmBaseName'), copyindex())]",
-            "type": "Microsoft.Compute/virtualMachines",
-            "location": "[resourceGroup().location]",
-            "dependsOn": [
-                "[concat('Microsoft.Network/networkInterfaces/', variables('nicBaseName'), copyIndex())]",
-                "[concat('Microsoft.Compute/availabilitySets/', variables('avSetName'))]"
-            ],
-            "copy": {
-                "name": "[concat(variables('namingInfix'),'VmLoop')]",
-                "count": "[parameters('infrastructure').numberOfServers]"
-            },
-            "apiVersion": "2016-04-30-preview",
-            "tags": {
-                "displayName": "[concat(variables('vmBaseName'), copyIndex())]"
-            },
-            "properties": {
-                "availabilitySet": {
-                    "id": "[resourceId('Microsoft.Compute/availabilitySets',variables('avSetName'))]"
-                },
-                "hardwareProfile": {
-                    "vmSize": "[parameters('infrastructure').serverSize]"
-                },
-                "osProfile": {
-                    "computerName": "[concat(variables('vmBaseName'), copyindex())]",
-                    "adminUsername": "[parameters('adminUserName')]",
-                    "adminPassword": "[parameters('adminPassword')]"
-                },
-                "storageProfile": {
-                    "imageReference": {
-                        "publisher": "[parameters('infrastructure').operatingSystem.imagePublisher]",
-                        "offer": "[parameters('infrastructure').operatingSystem.imageOffer]",
-                        "sku": "[parameters('infrastructure').operatingSystem.version]",
-                        "version": "latest"
-                    },
-                    "osDisk": {
-                        "name": "[concat(variables('vmBaseName'), 'osdisk', copyIndex())]",
-                        "caching": "ReadWrite",
-                        "createOption": "FromImage",
-                        "managedDisk": {
-                            "storageAccountType": "[parameters('infrastructure').disk.osDriveStorageAccountSize]"
-                        }
-                    },
-                    "dataDisks": "[variables('attachedDiskConfig')[string(parameters('infrastructure').disk.attachedDisk.enabled)]]"
-                },
-                "networkProfile": {
-                    "networkInterfaces": [
-                        {
-                            "id": "[resourceId('Microsoft.Network/networkInterfaces', concat(variables('nicBaseName'), copyIndex()))]"
-                        }
-                    ]
-                }
-            }
-        },
-        {
-            "type": "Microsoft.Compute/virtualMachines/extensions",
-            "name": "[concat(variables('vmBaseName'), copyindex(),'/ChefClient')]",
-            "apiVersion": "2015-05-01-preview",
-            "condition": "[parameters('chef').enabled]",
-            "copy": {
-                "name": "ChefLoop",
-                "count": "[parameters('infrastructure').numberOfServers]"
-            },
-            "dependsOn": [
-                "[concat('Microsoft.Compute/virtualMachines/', variables('vmBaseName'), copyindex())]"
-            ],
-            "location": "[resourceGroup().location]",
-            "properties": {
-                "publisher": "Chef.Bootstrap.WindowsAzure",
-                "type": "[variables('chefExtensionType')[toLower(parameters('infrastructure').operatingSystem.imageOffer)]]",
-                "typeHandlerVersion": "1210.12",
-                "settings": {
-                    "client_rb": "ssl_verify_mode :verify_none",
-                    "bootstrap_version": "[parameters('chef').version]",
-                    "daemon": "task",
-                    "bootstrap_options": {
-                        "chef_node_name": "[concat(variables('vmBaseName'), copyindex())]",
-                        "chef_server_url": "[concat(parameters('chef').serverUrl, '/organizations/', parameters('chef').organization)]",
-                        "validation_client_name": "[parameters('chef').validatorClientName]"
-                    },
-                    "custom_json_attr": {
-                        "policy_group": "[parameters('chef').policyGroup]",
-                        "policy_name": "[parameters('chef').policyName]"
-                    },
-                    "validation_key_format": "base64encoded"
-                },
-                "protectedSettings": {
-                    "validation_key": "[parameters('chefBase64ValidatorKey')]"
-                }
-            }
-        },
-        {
-            "type": "Microsoft.Compute/virtualMachines/extensions",
-            "name": "[concat(variables('vmBaseName'), copyIndex(),'/DriveMount', copyIndex())]",
-            "apiVersion": "2015-05-01-preview",
-            "condition": "[parameters('infrastructure').disk.attachedDisk.enabled]",
-            "copy": {
-                "name": "DiskAttachLoop",
-                "count": "[parameters('infrastructure').numberOfServers]"
-            },
-            "dependsOn": [
-                "[concat('Microsoft.Compute/virtualMachines/', variables('vmBaseName'), copyIndex())]"
-            ],
-            "location": "[resourceGroup().location]",
-            "properties": {
-                "publisher": "Microsoft.Azure.Extensions",
-                "type": "CustomScript",
-                "typeHandlerVersion": "2.0",
-                "autoUpgradeMinorVersion": true,
-                "settings": {
-                    "fileUris": [
-                        "https://raw.githubusercontent.com/jkerry/script_bin/master/mount_sdc.sh"
-                    ]
-                },
-                "protectedSettings": {
-                    "commandToExecute": "sudo sh mount_sdc.sh"
-                }
-            }
+          }
         }
-    ],
-    "outputs": {}
+      }
+    },
+    "infrastructure": {
+      "type": "object",
+      "defaultValue": {
+        "numberOfServers": 2,
+        "serverSize": "Standard_A1",
+        "operatingSystem": {
+          "imagePublisher": "OpenLogic",
+          "imageOffer": "CentOS",
+          "version": "7.3"
+        },
+        "disk": {
+          "osDriveStorageAccountSize": "Standard_LRS",
+          "attachedDisk": {
+            "enabled": false,
+            "type": "Standard_LRS",
+            "sizeGB": 40
+          }
+        }
+      }
+    },
+    "chef": {
+      "type": "object",
+      "defaultValue": {
+        "enabled": false,
+        "policyGroup": "tech_demo",
+        "policyName": "web_server",
+        "validatorClientName": "POCValidator",
+        "serverUrl": "https://POCChefServer.pocdomain.com",
+        "organization": "ncr",
+        "version": "13.1.31"
+      }
+    }
+  },
+  "variables": {
+    "namingInfix": "[toLower(concat(parameters('product').name, parameters('product').tier_name))]",
+    "avSetName": "[concat(variables('namingInfix'),'avset')]",
+    "nicBaseName": "[concat(variables('namingInfix'),'nic')]",
+    "vmBaseName": "[concat(variables('namingInfix'),'vm')]",
+    "vnetID": "[resourceId(parameters('network').virtualNetwork.resourceGroup, 'Microsoft.Network/virtualNetworks', parameters('network').virtualNetwork.name)]",
+    "vmSubnetRef": "[concat(variables('vnetID'), '/subnets/', parameters('network').subnet.name)]",
+    "lbName": "[concat(variables('namingInfix'),'loadbalancer')]",
+    "lbIPScope": "[toLower(parameters('network').loadbalancing.ipType)]",
+    "lbSubnetRef": "[concat(variables('vnetID'), '/subnets/', parameters('network').loadbalancing.ipConfiguration.private.subnet)]",
+    "lbID": "[resourceId('Microsoft.Network/loadBalancers',variables('lbName'))]",
+    "backEndAddressPoolID": "[concat(variables('lbID'), '/backendAddressPools/BackendPool')]",
+    "backendAddressPools": {
+      "true": [
+        {
+          "id": "[variables('backEndAddressPoolID')]"
+        }
+      ],
+      "false": [
+
+      ]
+    },
+    "lbFrontEndIPConfigruations": {
+      "public": [
+        {
+          "name": "LoadBalancerFrontend",
+          "properties": {
+            "publicIPAddress": {
+              "id": "[resourceId(parameters('network').loadbalancing.ipConfiguration.public.resourceGroup, 'Microsoft.Network/publicIPAddresses',parameters('network').loadbalancing.ipConfiguration.public.name)]"
+            }
+          }
+        }
+      ],
+      "private": [
+        {
+          "name": "LoadBalancerFrontend",
+          "properties": {
+            "subnet": {
+              "id": "[variables('lbSubnetRef')]"
+            },
+            "privateIPAddress": "[parameters('network').loadbalancing.ipConfiguration.private.staticIP]",
+            "privateIPAllocationMethod": "Static"
+          }
+        }
+      ]
+    },
+    "lbRuleNameBase": "lbrule",
+    "firstLBRulePort": "[parameters('network').loadbalancing.rules.first.port]",
+    "firstLBRuleBackendPort": "[parameters('network').loadbalancing.rules.first.backendPort]",
+    "firstLBRuleTimeout": "[parameters('network').loadbalancing.rules.first.timeout]",
+    "firstLBRule": {
+      "name": "[concat(variables('lbRuleNameBase'),'P', variables('firstLBRulePort'))]",
+      "properties": {
+        "frontendIPConfiguration": {
+          "id": "[concat(variables('lbID'),'/frontendIPConfigurations/LoadBalancerFrontend')]"
+        },
+        "backendAddressPool": {
+          "id": "[concat(variables('lbID'),'/backendAddressPools/BackendPool')]"
+        },
+        "protocol": "Tcp",
+        "frontendPort": "[variables('firstLBRulePort')]",
+        "backendPort": "[variables('firstLBRuleBackendPort')]",
+        "enableFloatingIP": false,
+        "idleTimeoutInMinutes": "[variables('firstLBRuleTimeout')]",
+        "probe": {
+          "id": "[concat(variables('lbID'),'/probes/',variables('lbRuleNameBase'),'probeP', variables('firstLBRulePort'))]"
+        }
+      }
+    },
+    "secondLBRulePort": "[parameters('network').loadbalancing.rules.second.port]",
+    "secondLBRuleBackendPort": "[parameters('network').loadbalancing.rules.second.backendPort]",
+    "secondLBRuleTimeout": "[parameters('network').loadbalancing.rules.second.timeout]",
+    "secondLBRule": {
+      "name": "[concat(variables('lbRuleNameBase'),'P', variables('secondLBRulePort'))]",
+      "properties": {
+        "frontendIPConfiguration": {
+          "id": "[concat(variables('lbID'),'/frontendIPConfigurations/LoadBalancerFrontend')]"
+        },
+        "backendAddressPool": {
+          "id": "[concat(variables('lbID'),'/backendAddressPools/BackendPool')]"
+        },
+        "protocol": "Tcp",
+        "frontendPort": "[variables('secondLBRulePort')]",
+        "backendPort": "[variables('secondLBRuleBackendPort')]",
+        "enableFloatingIP": false,
+        "idleTimeoutInMinutes": "[variables('secondLBRuleTimeout')]",
+        "probe": {
+          "id": "[concat(variables('lbID'),'/probes/',variables('lbRuleNameBase'),'probeP', variables('secondLBRulePort'))]"
+        }
+      }
+    },
+    "lbRules": {
+      "none": [
+
+      ],
+      "one": [
+        "[variables('firstLBRule')]"
+      ],
+      "two": [
+        "[variables('firstLBRule')]",
+        "[variables('secondLBRule')]"
+      ]
+    },
+    "firstLBProbe": {
+      "name": "[concat(variables('lbRuleNameBase'),'probeP', variables('firstLBRulePort'))]",
+      "properties": {
+        "intervalInSeconds": 5,
+        "numberOfProbes": 2,
+        "port": "[variables('firstLBRulePort')]",
+        "protocol": "Tcp"
+      }
+    },
+    "secondLBProbe": {
+      "name": "[concat(variables('lbRuleNameBase'),'probeP', variables('secondLBRulePort'))]",
+      "properties": {
+        "intervalInSeconds": 5,
+        "numberOfProbes": 2,
+        "port": "[variables('secondLBRulePort')]",
+        "protocol": "Tcp"
+      }
+    },
+    "lbProbes": {
+      "one": [
+        "[variables('firstLBProbe')]"
+      ],
+      "two": [
+        "[variables('firstLBProbe')]",
+        "[variables('secondLBProbe')]"
+      ]
+    },
+    "nicDependency": {
+      "true": "[concat('Microsoft.Network/loadBalancers/', variables('lbName'))]",
+      "false": "[concat('Microsoft.Compute/availabilitySets/', variables('avSetName'))]"
+    },
+    "chefExtensionType": {
+      "WindowsServer": "ChefClient",
+      "CentOS": "LinuxChefClient"
+    },
+    "attachedDiskConfig": {
+      "true": [
+        {
+          "diskSizeGB": "[parameters('infrastructure').disk.attachedDisk.sizeGB]",
+          "lun": 0,
+          "createOption": "Empty"
+        }
+      ],
+      "false": [
+
+      ]
+    }
+  },
+  "resources": [
+    {
+      "name": "[variables('avSetName')]",
+      "type": "Microsoft.Compute/availabilitySets",
+      "location": "[resourceGroup().location]",
+      "apiVersion": "2016-04-30-preview",
+      "dependsOn": [
+
+      ],
+      "tags": {
+        "displayName": "[variables('avSetName')]"
+      },
+      "properties": {
+        "platformUpdateDomainCount": 5,
+        "platformFaultDomainCount": 2
+      },
+      "sku": {
+        "name": "Aligned"
+      }
+    },
+    {
+      "apiVersion": "2016-03-30",
+      "type": "Microsoft.Network/loadBalancers",
+      "name": "[variables('lbName')]",
+      "location": "[resourceGroup().location]",
+      "condition": "[parameters('network').loadBalancing.enabled]",
+      "tags": {
+        "displayName": "[variables('lbName')]"
+      },
+      "properties": {
+        "availabilitySet": {
+          "id": "[resourceId('Microsoft.Compute/availabilitySets',variables('avSetName'))]"
+        },
+        "frontendIPConfigurations": "[variables('lbFrontEndIPConfigruations')[variables('lbIPScope')]]",
+        "backendAddressPools": [
+          {
+            "name": "BackendPool"
+          }
+        ],
+        "loadBalancingRules": "[variables('lbRules')[toLower(parameters('network').loadBalancing.rules.take)]]",
+        "probes": "[variables('lbProbes')[toLower(parameters('network').loadBalancing.rules.take)]]"
+      }
+    },
+    {
+      "name": "[concat(variables('nicBaseName'),copyIndex())]",
+      "type": "Microsoft.Network/networkInterfaces",
+      "location": "[resourceGroup().location]",
+      "dependsOn": [
+        "[variables('nicDependency')[string(parameters('network').loadBalancing.enabled)]]"
+      ],
+      "copy": {
+        "name": "[concat(variables('namingInfix'),'NicLoop')]",
+        "count": "[parameters('infrastructure').numberOfServers]"
+      },
+      "apiVersion": "2017-06-01",
+      "tags": {
+        "displayName": "[concat(variables('namingInfix'),'Nic',copyIndex())]"
+      },
+      "properties": {
+        "ipConfigurations": [
+          {
+            "name": "primary",
+            "properties": {
+              "privateIPAllocationMethod": "Static",
+              "privateIPAddress": "[concat(parameters('network').subnet.vmBaseIP, '.', add(parameters('network').subnet.lastOctetStart,copyIndex()))]",
+              "subnet": {
+                "id": "[variables('vmSubnetRef')]"
+              },
+              "loadBalancerBackendAddressPools": "[variables('backendAddressPools')[string(parameters('network').loadBalancing.enabled)]]",
+              "loadBalancerInboundNatRules": [
+
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "type": "Microsoft.Compute/disks",
+      "name": "[concat(variables('vmBaseName'), 'DataDisk', copyIndex())]",
+      "condition": "[parameters('infrastructure').disk.attachedDisk.enabled]",
+      "apiVersion": "2016-04-30-preview",
+      "location": "[resourceGroup().location]",
+      "copy": {
+        "name": "[concat(variables('namingInfix'),'DiskLoop')]",
+        "count": "[parameters('infrastructure').numberOfServers]"
+      },
+      "properties": {
+        "creationData": {
+          "createOption": "Empty"
+        },
+        "accountType": "[parameters('infrastructure').disk.attachedDisk.type]",
+        "diskSizeGB": "[parameters('infrastructure').disk.attachedDisk.sizeGB]"
+      }
+    },
+    {
+      "name": "[concat(variables('vmBaseName'), copyindex())]",
+      "type": "Microsoft.Compute/virtualMachines",
+      "location": "[resourceGroup().location]",
+      "dependsOn": [
+        "[concat('Microsoft.Network/networkInterfaces/', variables('nicBaseName'), copyIndex())]",
+        "[concat('Microsoft.Compute/availabilitySets/', variables('avSetName'))]"
+      ],
+      "copy": {
+        "name": "[concat(variables('namingInfix'),'VmLoop')]",
+        "count": "[parameters('infrastructure').numberOfServers]"
+      },
+      "apiVersion": "2016-04-30-preview",
+      "tags": {
+        "displayName": "[concat(variables('vmBaseName'), copyIndex())]"
+      },
+      "properties": {
+        "availabilitySet": {
+          "id": "[resourceId('Microsoft.Compute/availabilitySets',variables('avSetName'))]"
+        },
+        "hardwareProfile": {
+          "vmSize": "[parameters('infrastructure').serverSize]"
+        },
+        "osProfile": {
+          "computerName": "[concat(variables('vmBaseName'), copyindex())]",
+          "adminUsername": "[parameters('adminUserName')]",
+          "adminPassword": "[parameters('adminPassword')]"
+        },
+        "storageProfile": {
+          "imageReference": {
+            "publisher": "[parameters('infrastructure').operatingSystem.imagePublisher]",
+            "offer": "[parameters('infrastructure').operatingSystem.imageOffer]",
+            "sku": "[parameters('infrastructure').operatingSystem.version]",
+            "version": "latest"
+          },
+          "osDisk": {
+            "name": "[concat(variables('vmBaseName'), 'osdisk', copyIndex())]",
+            "caching": "ReadWrite",
+            "createOption": "FromImage",
+            "managedDisk": {
+              "storageAccountType": "[parameters('infrastructure').disk.osDriveStorageAccountSize]"
+            }
+          },
+          "dataDisks": "[variables('attachedDiskConfig')[string(parameters('infrastructure').disk.attachedDisk.enabled)]]"
+        },
+        "networkProfile": {
+          "networkInterfaces": [
+            {
+              "id": "[resourceId('Microsoft.Network/networkInterfaces', concat(variables('nicBaseName'), copyIndex()))]"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "type": "Microsoft.Compute/virtualMachines/extensions",
+      "name": "[concat(variables('vmBaseName'), copyindex(),'/ChefClient')]",
+      "apiVersion": "2015-05-01-preview",
+      "condition": "[parameters('chef').enabled]",
+      "copy": {
+        "name": "ChefLoop",
+        "count": "[parameters('infrastructure').numberOfServers]"
+      },
+      "dependsOn": [
+        "[concat('Microsoft.Compute/virtualMachines/', variables('vmBaseName'), copyindex())]"
+      ],
+      "location": "[resourceGroup().location]",
+      "properties": {
+        "publisher": "Chef.Bootstrap.WindowsAzure",
+        "type": "[variables('chefExtensionType')[toLower(parameters('infrastructure').operatingSystem.imageOffer)]]",
+        "typeHandlerVersion": "1210.12",
+        "settings": {
+          "client_rb": "ssl_verify_mode :verify_none",
+          "bootstrap_version": "[parameters('chef').version]",
+          "daemon": "task",
+          "bootstrap_options": {
+            "chef_node_name": "[concat(variables('vmBaseName'), copyindex())]",
+            "chef_server_url": "[concat(parameters('chef').serverUrl, '/organizations/', parameters('chef').organization)]",
+            "validation_client_name": "[parameters('chef').validatorClientName]"
+          },
+          "custom_json_attr": {
+            "policy_group": "[parameters('chef').policyGroup]",
+            "policy_name": "[parameters('chef').policyName]"
+          },
+          "validation_key_format": "base64encoded"
+        },
+        "protectedSettings": {
+          "validation_key": "[parameters('chefBase64ValidatorKey')]"
+        }
+      }
+    },
+    {
+      "type": "Microsoft.Compute/virtualMachines/extensions",
+      "name": "[concat(variables('vmBaseName'), copyIndex(),'/DriveMount', copyIndex())]",
+      "apiVersion": "2015-05-01-preview",
+      "condition": "[parameters('infrastructure').disk.attachedDisk.enabled]",
+      "copy": {
+        "name": "DiskAttachLoop",
+        "count": "[parameters('infrastructure').numberOfServers]"
+      },
+      "dependsOn": [
+        "[concat('Microsoft.Compute/virtualMachines/', variables('vmBaseName'), copyIndex())]"
+      ],
+      "location": "[resourceGroup().location]",
+      "properties": {
+        "publisher": "Microsoft.Azure.Extensions",
+        "type": "CustomScript",
+        "typeHandlerVersion": "2.0",
+        "autoUpgradeMinorVersion": true,
+        "settings": {
+          "fileUris": [
+            "https://raw.githubusercontent.com/jkerry/script_bin/master/mount_sdc.sh"
+          ]
+        },
+        "protectedSettings": {
+          "commandToExecute": "sudo sh mount_sdc.sh"
+        }
+      }
+    }
+  ],
+  "outputs": {
+  }
 }

@@ -1,0 +1,93 @@
+{
+    "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "adminUserName": {
+            "value": "chefadmin"
+        },
+        "adminPassword": {
+            "value": "PASSWORD"
+        },
+        "chefBase64ValidatorKey": {
+            "value": "Really_Complicated_base64_hashed_validator"
+        },
+        "product": {
+            "value": {
+                "name": "chf",
+                "tier_name": "web"
+            }
+        },
+        "network": {
+            "value": {
+                "virtualNetwork": {
+                    "name": "defaultVNet",
+                    "resourceGroup": "SecNet"
+                },
+                "subnet": {
+                    "name": "defaultWeb",
+                    "vmBaseIP": "10.0.42",
+                    "lastOctetStart": 11
+                },
+                "loadBalancing": {
+                    "enabled": true,
+                    "ipType": "Private",
+                    "ipConfiguration": {
+                        "public": {
+                            "name": "DNE",
+                            "resourceGroup": "DNE"
+                        },
+                        "private": {
+                            "subnet": "defaultWeb",
+                            "staticIP": "10.0.42.6"
+                        }
+                    },
+                    "rules": {
+                        "take": "one",
+                        "first": {
+                            "port": 80,
+                            "backendPort": 80,
+                            "timeout": 5
+                        },
+                        "second": {
+                            "port": 443,
+                            "backendPort": 443,
+                            "timeout": 5
+                        }
+                    }
+                }
+            }
+        },
+        "infrastructure": {
+            "value": {
+                "numberOfServers": 2,
+                "serverSize": "Standard_A1",
+                "availabilitySetName": "defaultavset",
+                "serviceNamePrefix": "web",
+                "operatingSystem": {
+                    "imagePublisher": "OpenLogic",
+                    "imageOffer": "CentOS",
+                    "version": "7.3"
+                },
+                "disk": {
+                    "osDriveStorageAccountSize": "Standard_LRS",
+                    "attachedDisk": {
+                        "enabled": false,
+                        "type": "Standard_LRS",
+                        "sizeGB": 40
+                    }
+                }
+            }
+        },
+        "chef": {
+            "value": {
+                "enabled": false,
+                "policyGroup": "tech_demo",
+                "policyName": "web_server",
+                "validatorClientName": "POCValidator",
+                "serverUrl": "https://POCChefServer.pocdomain.com",
+                "organization": "ncr",
+                "version": "13.1.31"
+            }
+        }
+    }
+}

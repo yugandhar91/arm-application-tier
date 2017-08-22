@@ -1,0 +1,93 @@
+{
+    "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "adminUserName": {
+            "value": "chefadmin"
+        },
+        "adminPassword": {
+            "value": "PASSWORD"
+        },
+        "chefBase64ValidatorKey": {
+            "value": "Really_Complicated_base_64_validator_key"
+        },
+        "product": {
+            "value": {
+                "name": "chf",
+                "tier_name": "web"
+            }
+        },
+        "network": {
+            "value": {
+                "virtualNetwork": {
+                    "name": "defaultVNet",
+                    "resourceGroup": "SecNet"
+                },
+                "subnet": {
+                    "name": "defaultWeb",
+                    "vmBaseIP": "10.0.42",
+                    "lastOctetStart": 20
+                },
+                "loadBalancing": {
+                    "enabled": true,
+                    "ipType": "Public",
+                    "ipConfiguration": {
+                        "public": {
+                            "name": "chefSet",
+                            "resourceGroup": "SecNet"
+                        },
+                        "private": {
+                            "subnet": "DNE",
+                            "staticIP": "DNE"
+                        }
+                    },
+                    "rules": {
+                        "take": "one",
+                        "first": {
+                            "port": 80,
+                            "backendPort": 80,
+                            "timeout": 5
+                        },
+                        "second": {
+                            "port": 443,
+                            "backendPort": 443,
+                            "timeout": 5
+                        }
+                    }
+                }
+            }
+        },
+        "infrastructure": {
+            "value": {
+                "numberOfServers": 2,
+                "serverSize": "Standard_A1",
+                "availabilitySetName": "defaultavset",
+                "serviceNamePrefix": "chf",
+                "operatingSystem": {
+                    "imagePublisher": "OpenLogic",
+                    "imageOffer": "CentOS",
+                    "version": "7.3"
+                },
+                "disk": {
+                    "osDriveStorageAccountSize": "Standard_LRS",
+                    "attachedDisk": {
+                        "enabled": true,
+                        "type": "Standard_LRS",
+                        "sizeGB": 40
+                    }
+                }
+            }
+        },
+        "chef": {
+            "value": {
+                "enabled": true,
+                "policyGroup": "test",
+                "policyName": "empty",
+                "validatorClientName": "my-validator",
+                "serverUrl": "https://chef.server.com",
+                "organization": "ncr",
+                "version": "13.1.31"
+            }
+        }
+    }
+}

@@ -148,3 +148,19 @@ namespace :test do
   end
 end
 
+task :bump do
+  require 'json'
+  content_file = './serverset.azuredeploy.json'
+  serverset_template = JSON.parse File.read(content_file)
+  version = Gem::Version.new(serverset_template['contentVersion'])
+  new_version = "#{version.bump.to_s}.0"
+  serverset_template['contentVersion'] = new_version
+  
+  File.write contnet_file, JSON.pretty_generate(serverset_template)
+  sh <<-CDE
+    git add #{content_file}
+    git commit -m "bumping version from #{version} to #{new_version}"
+    git tag -a v#{new_version} -m \"Releasing v#{new_version}\"
+    git push
+  CDE
+end

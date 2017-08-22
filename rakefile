@@ -162,5 +162,6 @@ task :bump do
     git commit -m "bumping version from #{version} to #{new_version}"
     git tag -a v#{new_version} -m \"Releasing v#{new_version}\"
     git push
+    git push origin v#{new_version}
   CDE
 end

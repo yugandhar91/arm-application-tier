@@ -21,7 +21,8 @@
             "value": {
                 "virtualNetwork": {
                     "name": "defaultVNet",
-                    "resourceGroup": "SecNet"
+                    "resourceGroup": "SecNet",
+                    "subscriptionID": "DNE"
                 },
                 "subnet": {
                     "name": "defaultWeb",
@@ -34,7 +35,8 @@
                     "ipConfiguration": {
                         "public": {
                             "name": "pubIPSet",
-                            "resourceGroup": "SecNet"
+                            "resourceGroup": "SecNet",
+                            "subscriptionID": "DNE"
                         },
                         "private": {
                             "subnet": "DNE",

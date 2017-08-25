@@ -25,7 +25,8 @@
       "defaultValue": {
         "virtualNetwork": {
           "name": "defaultVNet",
-          "resourceGroup": "SecNet"
+          "resourceGroup": "SecNet",
+          "subscriptionID": ""
         },
         "subnet": {
           "name": "defaultWeb",
@@ -38,7 +39,8 @@
           "ipConfiguration": {
             "public": {
               "name": "DNE",
-              "resourceGroup": "DNE"
+              "resourceGroup": "DNE",
+              "subscriptionID": "DNE"
             },
             "private": {
               "subnet": "defaultWeb",
@@ -99,7 +101,7 @@
     "avSetName": "[concat(variables('namingInfix'),'avset')]",
     "nicBaseName": "[concat(variables('namingInfix'),'nic')]",
     "vmBaseName": "[concat(variables('namingInfix'),'vm')]",
-    "vnetID": "[resourceId(parameters('network').virtualNetwork.resourceGroup, 'Microsoft.Network/virtualNetworks', parameters('network').virtualNetwork.name)]",
+    "vnetID": "[resourceId(parameters('network').virtualNetwork.subscriptionID, parameters('network').virtualNetwork.resourceGroup, 'Microsoft.Network/virtualNetworks', parameters('network').virtualNetwork.name)]",
     "vmSubnetRef": "[concat(variables('vnetID'), '/subnets/', parameters('network').subnet.name)]",
     "lbName": "[concat(variables('namingInfix'),'loadbalancer')]",
     "lbIPScope": "[toLower(parameters('network').loadbalancing.ipType)]",
@@ -122,7 +124,7 @@
           "name": "LoadBalancerFrontend",
           "properties": {
             "publicIPAddress": {
-              "id": "[resourceId(parameters('network').loadbalancing.ipConfiguration.public.resourceGroup, 'Microsoft.Network/publicIPAddresses',parameters('network').loadbalancing.ipConfiguration.public.name)]"
+              "id": "[resourceId(parameters('network').loadbalancing.ipConfiguration.public.subscriptionID, parameters('network').loadbalancing.ipConfiguration.public.resourceGroup, 'Microsoft.Network/publicIPAddresses',parameters('network').loadbalancing.ipConfiguration.public.name)]"
             }
           }
         }

@@ -435,7 +435,7 @@
       "type": "Microsoft.Compute/virtualMachines/extensions",
       "name": "[concat(variables('vmBaseName'), copyIndex(),'/DriveMount', copyIndex())]",
       "apiVersion": "2015-05-01-preview",
-      "condition": "[parameters('infrastructure').disk.attachedDisk.enabled]",
+      "condition": "[and(parameters('infrastructure').disk.attachedDisk.enabled, equal(parameters('infrastructure').operatingSystem.imageOffer, 'CentOS'))]",
       "copy": {
         "name": "DiskAttachLoop",
         "count": "[parameters('infrastructure').numberOfServers]"

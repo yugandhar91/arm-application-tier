@@ -29,7 +29,7 @@
                     "lastOctetStart": 20
                 },
                 "loadBalancing": {
-                    "enabled": true,
+                    "enabled": false,
                     "ipType": "Public",
                     "ipConfiguration": {
                         "public": {
@@ -59,19 +59,19 @@
         },
         "infrastructure": {
             "value": {
-                "numberOfServers": 2,
+                "numberOfServers": 1,
                 "serverSize": "Standard_A1",
                 "availabilitySetName": "defaultavset",
                 "serviceNamePrefix": "chf",
                 "operatingSystem": {
-                    "imagePublisher": "OpenLogic",
-                    "imageOffer": "CentOS",
-                    "version": "7.3"
+                    "imagePublisher": "MicrosoftWindowsServer",
+                    "imageOffer": "WindowsServer",
+                    "version": "2012-R2-Datacenter"
                 },
                 "disk": {
                     "osDriveStorageAccountSize": "Standard_LRS",
                     "attachedDisk": {
-                        "enabled": false,
+                        "enabled": true,
                         "type": "Standard_LRS",
                         "sizeGB": 40
                     }
@@ -80,7 +80,7 @@
         },
         "chef": {
             "value": {
-                "enabled": true,
+                "enabled": false,
                 "policyGroup": "test",
                 "policyName": "empty",
                 "validatorClientName": "my-validator",

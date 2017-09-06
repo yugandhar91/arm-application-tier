@@ -243,7 +243,8 @@
       "false": [
 
       ]
-    }
+    },
+    "windowsAttachedDiskDSCModule": "https://raw.githubusercontent.com/ncr-devops-platform/arm-resources-win-attached-storage/v0.1.2/AttachStorage.zip"
   },
   "resources": [
     {
@@ -433,7 +434,7 @@
     },
     {
       "type": "Microsoft.Compute/virtualMachines/extensions",
-      "name": "[concat(variables('vmBaseName'), copyIndex(),'/DriveMount', copyIndex())]",
+      "name": "[concat(variables('vmBaseName'), copyIndex(),'/DriveMountCentOS', copyIndex())]",
       "apiVersion": "2015-05-01-preview",
       "condition": "[and(parameters('infrastructure').disk.attachedDisk.enabled, equals(parameters('infrastructure').operatingSystem.imageOffer, 'CentOS'))]",
       "copy": {
@@ -456,6 +457,30 @@
         },
         "protectedSettings": {
           "commandToExecute": "sudo sh mount_sdc.sh"
+        }
+      }
+    },
+    {
+      "type": "Microsoft.Compute/virtualMachines/extensions",
+      "name": "[concat(variables('vmBaseName'), copyIndex(),'/DriveMountWindows', copyIndex())]",
+      "apiVersion": "2015-06-15",
+      "location": "[resourceGroup().location]",
+      "condition": "[and(parameters('infrastructure').disk.attachedDisk.enabled, not(equals(parameters('infrastructure').operatingSystem.imageOffer, 'CentOS')))]",
+      "copy": {
+        "name": "WinDiskAttachLoop",
+        "count": "[parameters('infrastructure').numberOfServers]"
+      },
+      "dependsOn": [
+        "[concat('Microsoft.Compute/virtualMachines/', variables('vmBaseName'), copyIndex())]"
+      ],
+      "properties": {
+        "publisher": "Microsoft.Powershell",
+        "type": "DSC",
+        "typeHandlerVersion": "2.19",
+        "autoUpgradeMinorVersion": true,
+        "settings": {
+          "ModulesUrl": "[variables('windowsAttachedDiskDSCModule')]",
+          "ConfigurationFunction": "AttachStorage.ps1\\AttachedDisk"
         }
       }
     }

@@ -26,7 +26,7 @@
                 "subnet": {
                     "name": "defaultWeb",
                     "vmBaseIP": "10.0.42",
-                    "lastOctetStart": 20
+                    "lastOctetStart": 25
                 },
                 "loadBalancing": {
                     "enabled": false,

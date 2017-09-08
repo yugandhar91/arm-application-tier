@@ -1,6 +1,6 @@
 {
   "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
-  "contentVersion": "1.0.10.0",
+  "contentVersion": "1.0.11.0",
   "parameters": {
     "adminUserName": {
       "type": "string",
@@ -128,7 +128,7 @@
         "enabled": false,
         "domain": "contoso.com",
         "username": "jason",
-        "joinOptions": null
+        "joinOptions": 3
       }
     }
   },
@@ -570,7 +570,8 @@
           "Name": "[parameters('activeDirectory')['domain']]",
           "User": "[concat(parameters('activeDirectory')['domain'], '\\', parameters('activeDirectory')['username'])]",
           "Restart": "true",
-          "Options": "[parameters('activeDirectory')['joinOptions']]"
+          "Options": "[parameters('activeDirectory')['joinOptions']]",
+          "OUPath": ""
         },
         "protectedSettings": {
           "Password": "[parameters('domainPassword')]"

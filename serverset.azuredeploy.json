@@ -1,6 +1,6 @@
 {
   "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
-  "contentVersion": "1.0.8.0",
+  "contentVersion": "1.0.9.0",
   "parameters": {
     "adminUserName": {
       "type": "string",
@@ -558,8 +558,8 @@
       },
       "dependsOn": [
         "[concat('Microsoft.Compute/virtualMachines/', variables('vmBaseName'), copyIndex())]",
-        "[concat('Microsoft.Compute/virtualMachines/extensions/', variables('vmBaseName'), copyIndex(),'/DriveMountWindows', copyIndex())]",
-        "[concat('Microsoft.Compute/virtualMachines/extensions/', variables('vmBaseName'), copyIndex(),'/PowershellProvisioner', copyIndex())]"
+        "[concat('Microsoft.Compute/virtualMachines/', variables('vmBaseName'), copyIndex(),'/extensions/', copyIndex(),'/DriveMountWindows', copyIndex())]",
+        "[concat('Microsoft.Compute/virtualMachines/', variables('vmBaseName'), copyIndex(),'/extensions/', copyIndex(),'/PowershellProvisioner', copyIndex())]"
       ],
       "properties": {
         "publisher": "Microsoft.Compute",

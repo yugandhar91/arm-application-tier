@@ -29,7 +29,7 @@
                     "lastOctetStart": 11
                 },
                 "loadBalancing": {
-                    "enabled": true,
+                    "enabled": false,
                     "ipType": "Private",
                     "ipConfiguration": {
                         "public": {

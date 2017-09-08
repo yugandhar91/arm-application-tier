@@ -92,6 +92,31 @@
         "organization": "ncr",
         "version": "13.1.31"
       }
+    },
+    "powershell_provisioner": {
+      "type": "object",
+      "defaultValue": {
+        "enabled": false,
+        "type": "DSC",
+        "handlerVersion": "2.7",
+        "autoUpgradeMinorVersion": true,
+        "settings": {
+          "ModulesUrl": "https://someurl/something.zip",
+          "ConfigurationFunction": "Something.ps1\\SomeConfiguration",
+          "properties": {
+            "powershellPropertyOne": "HenryVIII",
+            "AdminCreds": {
+              "UserName": "Henry",
+              "Password": "PrivateSettingsRef:AdminPassword"
+            }
+          }
+        },
+        "protectedSettings": {
+          "Items": {
+            "AdminPassword": "[parameters('adminPassword')]"
+          }
+        }
+      }
     }
   },
   "variables": {
@@ -244,6 +269,8 @@
 
       ]
     },
+    "windowsAndAttachedDisk": "[and(parameters('infrastructure').disk.attachedDisk.enabled, not(equals(parameters('infrastructure').operatingSystem.imageOffer, 'CentOS')))]",
+    "centOSAndAttachedDisk": "[and(parameters('infrastructure').disk.attachedDisk.enabled, equals(parameters('infrastructure').operatingSystem.imageOffer, 'CentOS'))]",
     "windowsAttachedDiskDSCModule": "https://raw.githubusercontent.com/ncr-devops-platform/arm-resources-win-attached-storage/v0.1.8/AttachStorage.zip"
   },
   "resources": [
@@ -436,7 +463,7 @@
       "type": "Microsoft.Compute/virtualMachines/extensions",
       "name": "[concat(variables('vmBaseName'), copyIndex(),'/DriveMountCentOS', copyIndex())]",
       "apiVersion": "2015-05-01-preview",
-      "condition": "[and(parameters('infrastructure').disk.attachedDisk.enabled, equals(parameters('infrastructure').operatingSystem.imageOffer, 'CentOS'))]",
+      "condition": "[variables('centOSAndAttachedDisk')]",
       "copy": {
         "name": "DiskAttachLoop",
         "count": "[parameters('infrastructure').numberOfServers]"
@@ -465,7 +492,7 @@
       "name": "[concat(variables('vmBaseName'), copyIndex(),'/DriveMountWindows', copyIndex())]",
       "apiVersion": "2015-06-15",
       "location": "[resourceGroup().location]",
-      "condition": "[and(parameters('infrastructure').disk.attachedDisk.enabled, not(equals(parameters('infrastructure').operatingSystem.imageOffer, 'CentOS')))]",
+      "condition": "[and(variables('windowsAndAttachedDisk'), not(parameters('powershell_provisioner')['enabled']))]",
       "copy": {
         "name": "WinDiskAttachLoop",
         "count": "[parameters('infrastructure').numberOfServers]"
@@ -482,6 +509,28 @@
           "ModulesUrl": "[variables('windowsAttachedDiskDSCModule')]",
           "ConfigurationFunction": "AttachStorage.ps1\\AttachedDisk"
         }
+      }
+    },
+    {
+      "type": "Microsoft.Compute/virtualMachines/extensions",
+      "name": "[concat(variables('vmBaseName'), copyIndex(),'/PowershellProvisioner', copyIndex())]",
+      "apiVersion": "2015-06-15",
+      "location": "[resourceGroup().location]",
+      "condition": "[parameters('powershell_provisioner')['enabled']]",
+      "copy": {
+        "name": "PowershellProvisionerLoop",
+        "count": "[parameters('infrastructure').numberOfServers]"
+      },
+      "dependsOn": [
+        "[concat('Microsoft.Compute/virtualMachines/', variables('vmBaseName'), copyIndex())]"
+      ],
+      "properties": {
+        "publisher": "Microsoft.Powershell",
+        "type": "[parameters('powershell_provisioner')['type']]",
+        "typeHandlerVersion": "[parameters('powershell_provisioner')['handlerVersion']]",
+        "autoUpgradeMinorVersion": "[parameters('powershell_provisioner')['autoUpgradeMinorVersion']]",
+        "settings": "[parameters('powershell_provisioner')['settings']]",
+        "protectedSettings": "[parameters('powershell_provisioner')['protectedSettings']]"
       }
     }
   ],

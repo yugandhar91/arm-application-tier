@@ -1,0 +1,106 @@
+{
+    "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "adminUserName": {
+            "value": "chefadmin"
+        },
+        "adminPassword": {
+            "value": "CHANGEMEVbV&J*N*3ORg"
+        },
+        "chefBase64ValidatorKey": {
+            "value": "Really_Complicated_base_64_validator_key"
+        },
+        "product": {
+            "value": {
+                "name": "chf",
+                "tier_name": "web"
+            }
+        },
+        "network": {
+            "value": {
+                "virtualNetwork": {
+                    "name": "defaultVNet",
+                    "resourceGroup": "SecNet"
+                },
+                "subnet": {
+                    "name": "defaultWeb",
+                    "vmBaseIP": "10.0.42",
+                    "lastOctetStart": 40
+                },
+                "loadBalancing": {
+                    "enabled": false,
+                    "ipType": "Public",
+                    "ipConfiguration": {
+                        "public": {
+                            "name": "chefSet",
+                            "resourceGroup": "SecNet"
+                        },
+                        "private": {
+                            "subnet": "DNE",
+                            "staticIP": "DNE"
+                        }
+                    },
+                    "rules": {
+                        "take": "one",
+                        "first": {
+                            "port": 80,
+                            "backendPort": 80,
+                            "timeout": 5
+                        },
+                        "second": {
+                            "port": 443,
+                            "backendPort": 443,
+                            "timeout": 5
+                        }
+                    }
+                }
+            }
+        },
+        "infrastructure": {
+            "value": {
+                "numberOfServers": 1,
+                "serverSize": "Standard_A1",
+                "availabilitySetName": "defaultavset",
+                "serviceNamePrefix": "chf",
+                "operatingSystem": {
+                    "imagePublisher": "MicrosoftWindowsServer",
+                    "imageOffer": "WindowsServer",
+                    "version": "2012-R2-Datacenter"
+                },
+                "disk": {
+                    "osDriveStorageAccountSize": "Standard_LRS",
+                    "attachedDisk": {
+                        "enabled": true,
+                        "type": "Standard_LRS",
+                        "sizeGB": 40
+                    }
+                }
+            }
+        },
+        "powershell_provisioner": {
+            "value": {
+                "enabled": true,
+                "type": "DSC",
+                "handlerVersion": "2.7",
+                "autoUpgradeMinorVersion": true,
+                "settings": {
+                  "ModulesUrl": "https://raw.githubusercontent.com/ncr-devops-platform/arm-resources-win-active-directory/v0.1.11/ActiveDirectory.zip",
+                  "ConfigurationFunction": "ActiveDirectory.ps1\\ActiveDirectory",
+                  "properties": {
+                    "DomainName": "servers.testdomain.com",
+                    "AdminCreds": {
+                      "UserName": "domainadmin",
+                      "Password": "PrivateSettingsRef:AdminPassword"
+                    }
+                  }
+                },
+                "protectedSettings": {
+                  "Items": {
+                    "AdminPassword": "TotalS3cre7!"
+                  }
+                }
+              }
+        }
+    }
+}

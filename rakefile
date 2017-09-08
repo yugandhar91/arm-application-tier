@@ -12,9 +12,11 @@ resource_groups = {
   "attached_disk_centos" => "#{test_resource_group_base}CentOSAD",
   "attached_disk_windows" => "#{test_resource_group_base}WinAD", 
   "chef" => "#{test_resource_group_base}Chef", 
-  "no_loadbalancing" => "#{test_resource_group_base}NoLB", 
+  "no_loadbalancing_centos" => "#{test_resource_group_base}NoLBWin",
+  "no_loadbalancing_windows" => "#{test_resource_group_base}NoLBLin",
   "private_loadbalanced" => "#{test_resource_group_base}PrivIP", 
   "public_loadbalanced" => "#{test_resource_group_base}PublicIP",
+  "powershell_dsc" => "#{test_resource_group_base}PwrDSC"
 }
 
 def to_bool(str)

@@ -1,6 +1,6 @@
 {
   "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
-  "contentVersion": "1.0.7.0",
+  "contentVersion": "1.0.8.0",
   "parameters": {
     "adminUserName": {
       "type": "string",
@@ -150,7 +150,9 @@
           "id": "[variables('backEndAddressPoolID')]"
         }
       ],
-      "false": []
+      "false": [
+
+      ]
     },
     "lbFrontEndIPConfigruations": {
       "public": [
@@ -222,7 +224,9 @@
       }
     },
     "lbRules": {
-      "none": [],
+      "none": [
+
+      ],
       "one": [
         "[variables('firstLBRule')]"
       ],
@@ -274,7 +278,9 @@
           "createOption": "Empty"
         }
       ],
-      "false": []
+      "false": [
+
+      ]
     },
     "windowsAndAttachedDisk": "[and(parameters('infrastructure').disk.attachedDisk.enabled, not(equals(parameters('infrastructure').operatingSystem.imageOffer, 'CentOS')))]",
     "centOSAndAttachedDisk": "[and(parameters('infrastructure').disk.attachedDisk.enabled, equals(parameters('infrastructure').operatingSystem.imageOffer, 'CentOS'))]",
@@ -286,7 +292,9 @@
       "type": "Microsoft.Compute/availabilitySets",
       "location": "[resourceGroup().location]",
       "apiVersion": "2016-04-30-preview",
-      "dependsOn": [],
+      "dependsOn": [
+
+      ],
       "tags": {
         "displayName": "[variables('avSetName')]"
       },
@@ -347,7 +355,9 @@
                 "id": "[variables('vmSubnetRef')]"
               },
               "loadBalancerBackendAddressPools": "[variables('backendAddressPools')[string(parameters('network').loadBalancing.enabled)]]",
-              "loadBalancerInboundNatRules": []
+              "loadBalancerInboundNatRules": [
+
+              ]
             }
           }
         ]
@@ -568,5 +578,6 @@
       }
     }
   ],
-  "outputs": {}
+  "outputs": {
+  }
 }

@@ -10,7 +10,11 @@
       "type": "securestring"
     },
     "chefBase64ValidatorKey": {
-      "type": "string",
+      "type": "securestring",
+      "defaultValue": ""
+    },
+    "domainPassword": {
+      "type": "securestring",
       "defaultValue": ""
     },
     "product": {
@@ -117,6 +121,15 @@
           }
         }
       }
+    },
+    "activeDirectory": {
+      "type": "object",
+      "defaultValue": {
+        "enabled": false,
+        "domain": "contoso.com",
+        "username": "jason",
+        "joinOptions": null
+      }
     }
   },
   "variables": {
@@ -137,9 +150,7 @@
           "id": "[variables('backEndAddressPoolID')]"
         }
       ],
-      "false": [
-
-      ]
+      "false": []
     },
     "lbFrontEndIPConfigruations": {
       "public": [
@@ -211,9 +222,7 @@
       }
     },
     "lbRules": {
-      "none": [
-
-      ],
+      "none": [],
       "one": [
         "[variables('firstLBRule')]"
       ],
@@ -265,9 +274,7 @@
           "createOption": "Empty"
         }
       ],
-      "false": [
-
-      ]
+      "false": []
     },
     "windowsAndAttachedDisk": "[and(parameters('infrastructure').disk.attachedDisk.enabled, not(equals(parameters('infrastructure').operatingSystem.imageOffer, 'CentOS')))]",
     "centOSAndAttachedDisk": "[and(parameters('infrastructure').disk.attachedDisk.enabled, equals(parameters('infrastructure').operatingSystem.imageOffer, 'CentOS'))]",
@@ -279,9 +286,7 @@
       "type": "Microsoft.Compute/availabilitySets",
       "location": "[resourceGroup().location]",
       "apiVersion": "2016-04-30-preview",
-      "dependsOn": [
-
-      ],
+      "dependsOn": [],
       "tags": {
         "displayName": "[variables('avSetName')]"
       },
@@ -342,9 +347,7 @@
                 "id": "[variables('vmSubnetRef')]"
               },
               "loadBalancerBackendAddressPools": "[variables('backendAddressPools')[string(parameters('network').loadBalancing.enabled)]]",
-              "loadBalancerInboundNatRules": [
-
-              ]
+              "loadBalancerInboundNatRules": []
             }
           }
         ]
@@ -532,8 +535,38 @@
         "settings": "[parameters('powershell_provisioner')['settings']]",
         "protectedSettings": "[parameters('powershell_provisioner')['protectedSettings']]"
       }
+    },
+    {
+      "apiVersion": "2015-06-15",
+      "type": "Microsoft.Compute/virtualMachines/extensions",
+      "name": "[concat(variables('vmBaseName'), copyIndex(),'/joindomain', copyIndex())]",
+      "location": "[resourceGroup().location]",
+      "condition": "[and(parameters('activeDirectory')['enabled'], not(equals(parameters('infrastructure').operatingSystem.imageOffer, 'CentOS')))]",
+      "copy": {
+        "name": "PowershellProvisionerLoop",
+        "count": "[parameters('infrastructure').numberOfServers]"
+      },
+      "dependsOn": [
+        "[concat('Microsoft.Compute/virtualMachines/', variables('vmBaseName'), copyIndex())]",
+        "[concat('Microsoft.Compute/virtualMachines/extensions/', variables('vmBaseName'), copyIndex(),'/DriveMountWindows', copyIndex())]",
+        "[concat('Microsoft.Compute/virtualMachines/extensions/', variables('vmBaseName'), copyIndex(),'/PowershellProvisioner', copyIndex())]"
+      ],
+      "properties": {
+        "publisher": "Microsoft.Compute",
+        "type": "JsonADDomainExtension",
+        "typeHandlerVersion": "1.3",
+        "autoUpgradeMinorVersion": true,
+        "settings": {
+          "Name": "[parameters('activeDirectory')['domain']]",
+          "User": "[concat(parameters('activeDirectory')['domain'], '\\', parameters('activeDirectory')['username'])]",
+          "Restart": "true",
+          "Options": "[parameters('activeDirectory')['joinOptions']]"
+        },
+        "protectedSettings": {
+          "Password": "[parameters('domainPassword')]"
+        }
+      }
     }
   ],
-  "outputs": {
-  }
+  "outputs": {}
 }

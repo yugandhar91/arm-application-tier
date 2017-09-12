@@ -1,6 +1,6 @@
 {
   "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
-  "contentVersion": "1.0.11.0",
+  "contentVersion": "1.0.12.0",
   "parameters": {
     "adminUserName": {
       "type": "string",
@@ -437,43 +437,6 @@
     },
     {
       "type": "Microsoft.Compute/virtualMachines/extensions",
-      "name": "[concat(variables('vmBaseName'), copyindex(),'/ChefClient')]",
-      "apiVersion": "2015-05-01-preview",
-      "condition": "[parameters('chef').enabled]",
-      "copy": {
-        "name": "ChefLoop",
-        "count": "[parameters('infrastructure').numberOfServers]"
-      },
-      "dependsOn": [
-        "[concat('Microsoft.Compute/virtualMachines/', variables('vmBaseName'), copyindex())]"
-      ],
-      "location": "[resourceGroup().location]",
-      "properties": {
-        "publisher": "Chef.Bootstrap.WindowsAzure",
-        "type": "[variables('chefExtensionType')[toLower(parameters('infrastructure').operatingSystem.imageOffer)]]",
-        "typeHandlerVersion": "1210.12",
-        "settings": {
-          "client_rb": "ssl_verify_mode :verify_none",
-          "bootstrap_version": "[parameters('chef').version]",
-          "daemon": "task",
-          "bootstrap_options": {
-            "chef_node_name": "[concat(variables('vmBaseName'), copyindex())]",
-            "chef_server_url": "[concat(parameters('chef').serverUrl, '/organizations/', parameters('chef').organization)]",
-            "validation_client_name": "[parameters('chef').validatorClientName]"
-          },
-          "custom_json_attr": {
-            "policy_group": "[parameters('chef').policyGroup]",
-            "policy_name": "[parameters('chef').policyName]"
-          },
-          "validation_key_format": "base64encoded"
-        },
-        "protectedSettings": {
-          "validation_key": "[parameters('chefBase64ValidatorKey')]"
-        }
-      }
-    },
-    {
-      "type": "Microsoft.Compute/virtualMachines/extensions",
       "name": "[concat(variables('vmBaseName'), copyIndex(),'/DriveMountCentOS', copyIndex())]",
       "apiVersion": "2015-05-01-preview",
       "condition": "[variables('centOSAndAttachedDisk')]",
@@ -559,6 +522,7 @@
       "dependsOn": [
         "[concat('Microsoft.Compute/virtualMachines/', variables('vmBaseName'), copyIndex())]",
         "[concat('Microsoft.Compute/virtualMachines/', variables('vmBaseName'), copyIndex(),'/extensions/', '/DriveMountWindows', copyIndex())]",
+        "[concat('Microsoft.Compute/virtualMachines/', variables('vmBaseName'), copyIndex(),'/extensions/', '/DriveMountCentOS', copyIndex())]",
         "[concat('Microsoft.Compute/virtualMachines/', variables('vmBaseName'), copyIndex(),'/extensions/', '/PowershellProvisioner', copyIndex())]"
       ],
       "properties": {
@@ -575,6 +539,45 @@
         },
         "protectedSettings": {
           "Password": "[parameters('domainPassword')]"
+        }
+      }
+    },
+    {
+      "type": "Microsoft.Compute/virtualMachines/extensions",
+      "name": "[concat(variables('vmBaseName'), copyindex(),'/ChefClient')]",
+      "apiVersion": "2015-05-01-preview",
+      "condition": "[parameters('chef').enabled]",
+      "copy": {
+        "name": "ChefLoop",
+        "count": "[parameters('infrastructure').numberOfServers]"
+      },
+      "dependsOn": [
+        "[concat('Microsoft.Compute/virtualMachines/', variables('vmBaseName'), copyindex())]",
+        "[concat('Microsoft.Compute/virtualMachines/', variables('vmBaseName'), copyIndex(),'/extensions/', '/DriveMountWindows', copyIndex())]",
+        "[concat('Microsoft.Compute/virtualMachines/', variables('vmBaseName'), copyIndex(),'/extensions/', '/PowershellProvisioner', copyIndex())]"
+      ],
+      "location": "[resourceGroup().location]",
+      "properties": {
+        "publisher": "Chef.Bootstrap.WindowsAzure",
+        "type": "[variables('chefExtensionType')[toLower(parameters('infrastructure').operatingSystem.imageOffer)]]",
+        "typeHandlerVersion": "1210.12",
+        "settings": {
+          "client_rb": "ssl_verify_mode :verify_none",
+          "bootstrap_version": "[parameters('chef').version]",
+          "daemon": "task",
+          "bootstrap_options": {
+            "chef_node_name": "[concat(variables('vmBaseName'), copyindex())]",
+            "chef_server_url": "[concat(parameters('chef').serverUrl, '/organizations/', parameters('chef').organization)]",
+            "validation_client_name": "[parameters('chef').validatorClientName]"
+          },
+          "custom_json_attr": {
+            "policy_group": "[parameters('chef').policyGroup]",
+            "policy_name": "[parameters('chef').policyName]"
+          },
+          "validation_key_format": "base64encoded"
+        },
+        "protectedSettings": {
+          "validation_key": "[parameters('chefBase64ValidatorKey')]"
         }
       }
     }

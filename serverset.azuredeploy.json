@@ -1,6 +1,6 @@
 {
   "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
-  "contentVersion": "1.0.15.0",
+  "contentVersion": "1.0.16.0",
   "parameters": {
     "adminUserName": {
       "type": "string",
@@ -543,7 +543,7 @@
       "properties": {
         "publisher": "Chef.Bootstrap.WindowsAzure",
         "type": "[variables('chefExtensionType')[toLower(parameters('infrastructure').operatingSystem.imageOffer)]]",
-        "typeHandlerVersion": "1210.12.109.1005",
+        "typeHandlerVersion": "1210.12",
         "autoUpgradeMinorVersion": true,
         "settings": {
           "client_rb": "ssl_verify_mode :verify_none",

@@ -1,6 +1,6 @@
 {
   "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
-  "contentVersion": "1.0.20.0",
+  "contentVersion": "1.0.21.0",
   "parameters": {
     "adminUserName": {
       "type": "string",
@@ -284,7 +284,7 @@
     },
     "windowsAndAttachedDisk": "[and(parameters('infrastructure').disk.attachedDisk.enabled, not(equals(parameters('infrastructure').operatingSystem.imageOffer, 'CentOS')))]",
     "centOSAndAttachedDisk": "[and(parameters('infrastructure').disk.attachedDisk.enabled, equals(parameters('infrastructure').operatingSystem.imageOffer, 'CentOS'))]",
-    "windowsAttachedDiskDSCModule": "https://raw.githubusercontent.com/ncr-devops-platform/arm-resources-win-attached-storage/v0.1.12/AttachStorage.zip"
+    "windowsAttachedDiskDSCModule": "https://raw.githubusercontent.com/ncr-devops-platform/arm-resources-win-attached-storage/v0.1.13/AttachStorage.zip"
   },
   "resources": [
     {

@@ -364,24 +364,6 @@
       }
     },
     {
-      "type": "Microsoft.Compute/disks",
-      "name": "[concat(variables('vmBaseName'), 'DataDisk', copyIndex())]",
-      "condition": "[parameters('infrastructure').disk.attachedDisk.enabled]",
-      "apiVersion": "2016-04-30-preview",
-      "location": "[resourceGroup().location]",
-      "copy": {
-        "name": "[concat(variables('namingInfix'),'DiskLoop')]",
-        "count": "[parameters('infrastructure').numberOfServers]"
-      },
-      "properties": {
-        "creationData": {
-          "createOption": "Empty"
-        },
-        "accountType": "[parameters('infrastructure').disk.attachedDisk.type]",
-        "diskSizeGB": "[parameters('infrastructure').disk.attachedDisk.sizeGB]"
-      }
-    },
-    {
       "name": "[concat(variables('vmBaseName'), copyindex())]",
       "type": "Microsoft.Compute/virtualMachines",
       "location": "[resourceGroup().location]",

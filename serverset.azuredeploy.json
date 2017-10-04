@@ -1,6 +1,6 @@
 {
   "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
-  "contentVersion": "1.0.22.0",
+  "contentVersion": "1.0.23.0",
   "parameters": {
     "adminUserName": {
       "type": "string",
@@ -531,7 +531,7 @@
     },
     {
       "type": "Microsoft.Compute/virtualMachines/extensions",
-      "name": "[concat(variables('vmbaseName'),'/centosJoinDomain', copyIndex())]",
+      "name": "[concat(variables('vmbaseName'), copyIndex(),'/centosJoinDomain', copyIndex())]",
       "apiVersion": "2015-06-15",
       "location": "[resourceGroup().location]",
       "condition": "[and(parameters('activeDirectory')['enabled'], equals(parameters('infrastructure').operatingSystem.imageOffer, 'CentOS'))]",

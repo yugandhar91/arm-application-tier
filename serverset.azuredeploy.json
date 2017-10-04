@@ -1,6 +1,6 @@
 {
   "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
-  "contentVersion": "1.0.21.0",
+  "contentVersion": "1.0.22.0",
   "parameters": {
     "adminUserName": {
       "type": "string",
@@ -128,7 +128,8 @@
         "enabled": false,
         "domain": "contoso.com",
         "username": "jason",
-        "joinOptions": 3
+        "joinOptions": 3,
+        "linuxAdminGroups": "apopsadmin;dcopsadmin"
       }
     }
   },
@@ -284,7 +285,11 @@
     },
     "windowsAndAttachedDisk": "[and(parameters('infrastructure').disk.attachedDisk.enabled, not(equals(parameters('infrastructure').operatingSystem.imageOffer, 'CentOS')))]",
     "centOSAndAttachedDisk": "[and(parameters('infrastructure').disk.attachedDisk.enabled, equals(parameters('infrastructure').operatingSystem.imageOffer, 'CentOS'))]",
-    "windowsAttachedDiskDSCModule": "https://raw.githubusercontent.com/ncr-devops-platform/arm-resources-win-attached-storage/v0.1.13/AttachStorage.zip"
+    "windowsAttachedDiskDSCModule": "https://raw.githubusercontent.com/ncr-devops-platform/arm-resources-win-attached-storage/v0.1.13/AttachStorage.zip",
+    "centosDomainJoinScriptName": "JoinDomain.sh",
+    "centosDomainJoinScriptVersion": "0.1.2",
+    "centosDomainJoinScriptRootURL": "https://raw.githubusercontent.com/ncr-devops-platform/arm-resources-centos-active-directory/v",
+    "centosDomainJoinScriptPath": "[concat(variables('centosDomainJoinScriptRootURL'), variables('centosDomainJoinScriptVersion'), '/', variables('centosDomainJoinScriptName'))]"
   },
   "resources": [
     {
@@ -521,6 +526,37 @@
         },
         "protectedSettings": {
           "Password": "[parameters('domainPassword')]"
+        }
+      }
+    },
+    {
+      "type": "Microsoft.Compute/virtualMachines/extensions",
+      "name": "[concat(variables('vmbaseName'),'/centosJoinDomain', copyIndex())]",
+      "apiVersion": "2015-06-15",
+      "location": "[resourceGroup().location]",
+      "condition": "[and(parameters('activeDirectory')['enabled'], equals(parameters('infrastructure').operatingSystem.imageOffer, 'CentOS'))]",
+      "copy": {
+        "name": "CentosDomainJoinLoop",
+        "count": "[parameters('infrastructure').numberOfServers]"
+      },
+      "dependsOn": [
+        "[concat('Microsoft.Compute/virtualMachines/', variables('vmBaseName'), copyIndex())]",
+        "[concat('Microsoft.Compute/virtualMachines/', variables('vmBaseName'), copyIndex(),'/extensions/', '/DriveMountWindows', copyIndex())]",
+        "[concat('Microsoft.Compute/virtualMachines/', variables('vmBaseName'), copyIndex(),'/extensions/', '/DriveMountCentOS', copyIndex())]",
+        "[concat('Microsoft.Compute/virtualMachines/', variables('vmBaseName'), copyIndex(),'/extensions/', '/PowershellProvisioner', copyIndex())]"
+      ],
+      "properties": {
+        "publisher": "Microsoft.Azure.Extensions",
+        "type": "CustomScript",
+        "typeHandlerVersion": "2.0",
+        "autoUpgradeMinorVersion": true,
+        "settings": {
+          "fileUris": [
+            "[variables('centosDomainJoinScriptPath')]"
+          ]
+        },
+        "protectedSettings": {
+          "commandToExecute": "[concat('sh ', variables('centosDomainJoinScriptName'), ' ', parameters('activeDirectory')['domain'], ' ', parameters('activeDirectory')['username'], ' ', parameters('domainPassword'), ' ', parameters('activeDirectory')['linuxAdminGroups'])]"
         }
       }
     },

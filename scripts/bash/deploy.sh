@@ -10,7 +10,7 @@ DOMAIN_USER=$5
 DOMAIN_USER_PASS=$6
 SUDO_GROUPS=$7
 
-if $ATTACH_DISK ; then
+if [ $ATTACH_DISK = 'true' ] ; then
   dev=""
   mount | grep "sda"
   if [ $? -eq 1 ]
@@ -43,7 +43,7 @@ if $ATTACH_DISK ; then
 fi
 
 # Join the given realm if requested. Set the given groups to sudoers
-if $JOIN_DOMAIN ; then
+if [ $JOIN_DOMAIN = 'true' ] ; then
   # install prerequisite packages to domain join
   yum install sssd realmd oddjob oddjob-mkhomedir adcli samba-common samba-common-tools krb5-workstation openldap-clients policycoreutils-python -y
 

@@ -73,6 +73,7 @@
                     "attachedDisk": {
                         "enabled": true,
                         "type": "Standard_LRS",
+                        "linuxMountPath": "/datatwo",
                         "sizeGB": 40
                     }
                 }

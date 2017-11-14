@@ -119,6 +119,7 @@ task :bump do
   version = Gem::Version.new(serverset_template['contentVersion'])
   new_version = "#{version.bump.to_s}.0"
   serverset_template['contentVersion'] = new_version
+  serverset_template['variables']['script_version'] = new_version
 
   File.write content_file, JSON.pretty_generate(serverset_template)
   sh <<-CDE

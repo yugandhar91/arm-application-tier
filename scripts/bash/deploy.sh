@@ -10,36 +10,23 @@ DOMAIN_USER=$5
 DOMAIN_USER_PASS=$6
 SUDO_GROUPS=$7
 
-if [ $ATTACH_DISK = 'true' ] ; then
-  dev=""
-  mount | grep "sda"
-  if [ $? -eq 1 ]
-    then dev="sda"
-  fi
-  mount | grep "sdb"
-  if [ $? -eq 1 ]
-    then dev="sdb"
-  fi
-  mount | grep "sdc"
-  if [ $? -eq 1 ]
-    then dev="sdc"
-  fi
-
-  if [ "$dev" = "" ]
-    then exit 0
-  fi
-
-  echo "n
-  p
-  1
+if [ "$ATTACH_DISK" = 'true' ] ; then
+  dev=$(sudo parted -l 2>&1 >/dev/null | grep  "unrecognised disk label" |  sed -En 's/Error: (.*):.*/\1/p')
+  echo $dev > ./test_dev
+  if [ -n "$dev" ]
+    then
+echo "n
+p
+1
 
 
-  w
-  " | fdisk /dev/$dev
-  mkfs.ext4 -L /data "/dev/${dev}1"
-  mkdir /data
-  echo "LABEL=$MOUNT_POINT $MOUNT_POINT      ext4    defaults        1 2" >> /etc/fstab
-  mount -a
+w
+" | fdisk $dev
+    mkfs.ext4 -L $MOUNT_POINT "${dev}1"
+    mkdir $MOUNT_POINT
+    echo "LABEL=$MOUNT_POINT $MOUNT_POINT      ext4    defaults        1 2" >> /etc/fstab
+    mount -a
+  fi
 fi
 
 # Join the given realm if requested. Set the given groups to sudoers
@@ -51,7 +38,7 @@ if [ $JOIN_DOMAIN = 'true' ] ; then
   (realm list | grep $DOMAIN) || echo $DOMAIN_USER_PASS | realm join $DOMAIN -U $DOMAIN_USER
 
   # Allow interaction with AD objects without the domain suffixes
-  sed -i '/use_fully_qualified_names = True/c\use_fully_qualified_names = False' /etc/sssd/sssd.conf 
+  sed -i '/use_fully_qualified_names = True/c\use_fully_qualified_names = False' /etc/sssd/sssd.conf
   systemctl restart sssd
 
   export OLDIFS= $IFS

@@ -1,6 +1,6 @@
 {
   "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
-  "contentVersion": "1.0.29.0",
+  "contentVersion": "1.0.30.0",
   "parameters": {
     "adminUserName": {
       "type": "string",
@@ -135,7 +135,7 @@
     }
   },
   "variables": {
-    "script_version": "1.0.29.0",
+    "script_version": "1.0.30.0",
     "namingInfix": "[toLower(concat(parameters('product').name, parameters('product').tier_name))]",
     "avSetName": "[concat(variables('namingInfix'),'avset')]",
     "nicBaseName": "[concat(variables('namingInfix'),'nic')]",

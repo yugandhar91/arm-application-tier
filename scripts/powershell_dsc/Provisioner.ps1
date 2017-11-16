@@ -1,4 +1,4 @@
-Configuration AttachedDisk
+Configuration Provisioner
 {
   Import-DscResource -ModuleName xStorage
 

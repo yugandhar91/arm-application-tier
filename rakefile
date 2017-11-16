@@ -112,7 +112,36 @@ task :clean => [
   "clean:network"
 ]
 
-task :bump do
+package_name = 'Provisioner'
+dsc_root = './scripts/powershell_dsc'
+namespace :dsc do
+  task :package do
+    require 'zip'
+    Dir.chdir(dsc_root) do
+      zipfile_path = "#{package_name}.zip"
+      FileUtils.rm zipfile_path if File.exist? zipfile_path
+      input_filenames = FileList["**/*"].reject do |file|
+        File.directory?(file)
+      end
+  
+      Zip::File.open(zipfile_path, Zip::File::CREATE) do |zipfile|
+        input_filenames.each do |filename|
+          zipfile.add(filename, filename)
+        end
+      end
+    end
+  end
+
+  task release: [:package] do
+    sh <<-COMMIT
+      git add #{dsc_root}/#{package_name}.zip
+      git commit -m "releasing #{package_name}.zip"
+    COMMIT
+  end
+end
+
+
+task bump: ["dsc:release"] do
   require 'json'
   content_file = './serverset.azuredeploy.json'
   serverset_template = JSON.parse File.read(content_file)

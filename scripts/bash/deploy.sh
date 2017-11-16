@@ -18,7 +18,7 @@ echo "DOMAIN_USER = $DOMAIN_USER" >> /cmd.log
 echo "DOMAIN_USER_PASS = $DOMAIN_USER_PASS" >> /cmd.log
 echo "SUDO_GROUPS = $SUDO_GROUPS" >> /cmd.log
 
-if [ "$ATTACH_DISK" = 'true' ] ; then
+if [ "$ATTACH_DISK" = 'True' ] ; then
   dev=$(sudo parted -l 2>&1 >/dev/null | grep  "unrecognised disk label" |  sed -En 's/Error: (.*):.*/\1/p')
   echo $dev > /test_dev
   if [ -n "$dev" ]
@@ -38,7 +38,7 @@ w
 fi
 
 # Join the given realm if requested. Set the given groups to sudoers
-if [ "$JOIN_DOMAIN" = 'true' ] ; then
+if [ "$JOIN_DOMAIN" = 'True' ] ; then
   # install prerequisite packages to domain join
   yum install sssd realmd oddjob oddjob-mkhomedir adcli samba-common samba-common-tools krb5-workstation openldap-clients policycoreutils-python -y
 
@@ -50,7 +50,7 @@ if [ "$JOIN_DOMAIN" = 'true' ] ; then
   systemctl restart sssd
 
   export OLDIFS= $IFS
-  export IFS=";"
+  export IFS=","
   for group in $SUDO_GROUPS; do
     echo "%$group ALL=(ALL)  ALL" >> /etc/sudoers
   done

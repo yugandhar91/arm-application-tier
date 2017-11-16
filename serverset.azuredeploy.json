@@ -15,7 +15,7 @@
     },
     "domainPassword": {
       "type": "securestring",
-      "defaultValue": ""
+      "defaultValue": "NOT_PROVIDED"
     },
     "product": {
       "type": "object",
@@ -527,7 +527,7 @@
           ]
         },
         "protectedSettings": {
-          "commandToExecute": "[concat('sh ', variables('centosProvisionerScriptName'), ' ', parameters('infrastructure')['disk']['attachedDisk']['enabled'], ' ', parameters('infrastructure')['disk']['attachedDisk']['linuxMountPath'], ' ', parameters('activeDirectory')['domain'], ' ', parameters('activeDirectory')['enabled'], ' ', parameters('activeDirectory')['username'], ' ', parameters('domainPassword'), ' ', parameters('activeDirectory')['linuxAdminGroups'])]"
+          "commandToExecute": "[concat('sh ', variables('centosProvisionerScriptName'), ' ', parameters('infrastructure')['disk']['attachedDisk']['enabled'], ' ', parameters('infrastructure')['disk']['attachedDisk']['linuxMountPath'], ' ', parameters('activeDirectory')['enabled'], ' ', parameters('activeDirectory')['domain'], ' ', parameters('activeDirectory')['username'], ' ', parameters('domainPassword'), ' ', parameters('activeDirectory')['linuxAdminGroups'])]"
         }
       }
     },

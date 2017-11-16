@@ -3,10 +3,10 @@ Configuration Provisioner
   param (
     [bool] $AttachDisk = $false
   )
+  Import-DscResource -ModuleName xStorage
   
   if($AttachDisk)
   {
-    Import-DscResource -ModuleName xStorage
     Node "localhost"
     {
       xWaitforDisk Disk2

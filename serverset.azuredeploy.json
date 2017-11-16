@@ -98,31 +98,6 @@
         "version": "13.1.31"
       }
     },
-    "powershell_provisioner": {
-      "type": "object",
-      "defaultValue": {
-        "enabled": false,
-        "type": "DSC",
-        "handlerVersion": "2.7",
-        "autoUpgradeMinorVersion": true,
-        "settings": {
-          "ModulesUrl": "https://someurl/something.zip",
-          "ConfigurationFunction": "Something.ps1\\SomeConfiguration",
-          "properties": {
-            "powershellPropertyOne": "HenryVIII",
-            "AdminCreds": {
-              "UserName": "Henry",
-              "Password": "PrivateSettingsRef:AdminPassword"
-            }
-          }
-        },
-        "protectedSettings": {
-          "Items": {
-            "AdminPassword": "[parameters('adminPassword')]"
-          }
-        }
-      }
-    },
     "activeDirectory": {
       "type": "object",
       "defaultValue": {
@@ -287,7 +262,8 @@
     },
     "windowsAndAttachedDisk": "[and(parameters('infrastructure').disk.attachedDisk.enabled, not(equals(parameters('infrastructure').operatingSystem.imageOffer, 'CentOS')))]",
     "centOSAndAttachedDisk": "[and(parameters('infrastructure').disk.attachedDisk.enabled, equals(parameters('infrastructure').operatingSystem.imageOffer, 'CentOS'))]",
-    "windowsAttachedDiskDSCModule": "https://raw.githubusercontent.com/ncr-devops-platform/arm-resources-win-attached-storage/v0.1.13/AttachStorage.zip",
+    "windowsProvisionerModuleName": "Provisioner.zip",
+    "windowsProvisionerDSCModule": "[concat('https://raw.githubusercontent.com/jkerry/arm-application-tier/v', variables('script_version'), '/scripts/powershell_dsc/', variables('windowsProvisionerModuleName'))]",
     "centosProvisionerScriptName": "deploy.sh",
     "centosProvisionerScriptPath": "[concat('https://raw.githubusercontent.com/jkerry/arm-application-tier/v', variables('script_version'), '/scripts/bash/', variables('centosProvisionerScriptName'))]"
   },
@@ -424,10 +400,10 @@
     },
     {
       "type": "Microsoft.Compute/virtualMachines/extensions",
-      "name": "[concat(variables('vmBaseName'), copyIndex(),'/DriveMountWindows', copyIndex())]",
+      "name": "[concat(variables('vmBaseName'), copyIndex(),'/DSCProvisioner', copyIndex())]",
       "apiVersion": "2015-06-15",
       "location": "[resourceGroup().location]",
-      "condition": "[and(variables('windowsAndAttachedDisk'), not(parameters('powershell_provisioner')['enabled']))]",
+      "condition": "[not(equals(parameters('infrastructure').operatingSystem.imageOffer, 'CentOS'))]",
       "copy": {
         "name": "WinDiskAttachLoop",
         "count": "[parameters('infrastructure').numberOfServers]"
@@ -441,31 +417,12 @@
         "typeHandlerVersion": "2.7",
         "autoUpgradeMinorVersion": true,
         "settings": {
-          "ModulesUrl": "[variables('windowsAttachedDiskDSCModule')]",
-          "ConfigurationFunction": "AttachStorage.ps1\\AttachedDisk"
+          "ModulesUrl": "[variables('windowsProvisionerDSCModule')]",
+          "ConfigurationFunction": "Provisioner.ps1\\Provisioner",
+          "Properties": {
+            "AttachDisk": "[parameters('infrastructure').disk.attachedDisk.enabled]"
+          }
         }
-      }
-    },
-    {
-      "type": "Microsoft.Compute/virtualMachines/extensions",
-      "name": "[concat(variables('vmBaseName'), copyIndex(),'/PowershellProvisioner', copyIndex())]",
-      "apiVersion": "2015-06-15",
-      "location": "[resourceGroup().location]",
-      "condition": "[parameters('powershell_provisioner')['enabled']]",
-      "copy": {
-        "name": "PowershellProvisionerLoop",
-        "count": "[parameters('infrastructure').numberOfServers]"
-      },
-      "dependsOn": [
-        "[concat('Microsoft.Compute/virtualMachines/', variables('vmBaseName'), copyIndex())]"
-      ],
-      "properties": {
-        "publisher": "Microsoft.Powershell",
-        "type": "[parameters('powershell_provisioner')['type']]",
-        "typeHandlerVersion": "[parameters('powershell_provisioner')['handlerVersion']]",
-        "autoUpgradeMinorVersion": "[parameters('powershell_provisioner')['autoUpgradeMinorVersion']]",
-        "settings": "[parameters('powershell_provisioner')['settings']]",
-        "protectedSettings": "[parameters('powershell_provisioner')['protectedSettings']]"
       }
     },
     {
@@ -475,14 +432,13 @@
       "location": "[resourceGroup().location]",
       "condition": "[and(parameters('activeDirectory')['enabled'], not(equals(parameters('infrastructure').operatingSystem.imageOffer, 'CentOS')))]",
       "copy": {
-        "name": "PowershellProvisionerLoop",
+        "name": "WindowsDomainJoinLoop",
         "count": "[parameters('infrastructure').numberOfServers]"
       },
       "dependsOn": [
         "[concat('Microsoft.Compute/virtualMachines/', variables('vmBaseName'), copyIndex())]",
-        "[concat('Microsoft.Compute/virtualMachines/', variables('vmBaseName'), copyIndex(),'/extensions/', '/DriveMountWindows', copyIndex())]",
-        "[concat('Microsoft.Compute/virtualMachines/', variables('vmBaseName'), copyIndex(),'/extensions/', '/centosProvisioner', copyIndex())]",
-        "[concat('Microsoft.Compute/virtualMachines/', variables('vmBaseName'), copyIndex(),'/extensions/', '/PowershellProvisioner', copyIndex())]"
+        "[concat('Microsoft.Compute/virtualMachines/', variables('vmBaseName'), copyIndex(),'/extensions/', '/DSCProvisioner', copyIndex())]",
+        "[concat('Microsoft.Compute/virtualMachines/', variables('vmBaseName'), copyIndex(),'/extensions/', '/centosProvisioner', copyIndex())]"
       ],
       "properties": {
         "publisher": "Microsoft.Compute",
@@ -513,8 +469,7 @@
       },
       "dependsOn": [
         "[concat('Microsoft.Compute/virtualMachines/', variables('vmBaseName'), copyIndex())]",
-        "[concat('Microsoft.Compute/virtualMachines/', variables('vmBaseName'), copyIndex(),'/extensions/', '/DriveMountWindows', copyIndex())]",
-        "[concat('Microsoft.Compute/virtualMachines/', variables('vmBaseName'), copyIndex(),'/extensions/', '/PowershellProvisioner', copyIndex())]"
+        "[concat('Microsoft.Compute/virtualMachines/', variables('vmBaseName'), copyIndex(),'/extensions/', '/DSCProvisioner', copyIndex())]"
       ],
       "properties": {
         "publisher": "Microsoft.Azure.Extensions",
@@ -542,8 +497,7 @@
       },
       "dependsOn": [
         "[concat('Microsoft.Compute/virtualMachines/', variables('vmBaseName'), copyindex())]",
-        "[concat('Microsoft.Compute/virtualMachines/', variables('vmBaseName'), copyIndex(),'/extensions/', '/DriveMountWindows', copyIndex())]",
-        "[concat('Microsoft.Compute/virtualMachines/', variables('vmBaseName'), copyIndex(),'/extensions/', '/PowershellProvisioner', copyIndex())]",
+        "[concat('Microsoft.Compute/virtualMachines/', variables('vmBaseName'), copyIndex(),'/extensions/', '/DSCProvisioner', copyIndex())]",
         "[concat('Microsoft.Compute/virtualMachines/', variables('vmBaseName'), copyIndex(),'/extensions/', '/joindomain', copyIndex())]"
       ],
       "location": "[resourceGroup().location]",

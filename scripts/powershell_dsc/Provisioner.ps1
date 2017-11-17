@@ -37,14 +37,12 @@ Configuration Provisioner
       {
         Type = "Directory"
         Ensure = "Present"
-        Recurse = $true
         DestinationPath = "c:\chef\hash"
       }
 
       File appJson
       {
         Ensure = "Present"
-        Recurse = $true
         DestinationPath = "c:\chef\hash\app.json"
         Contents = (ConvertTo-Json $app_json)
       }

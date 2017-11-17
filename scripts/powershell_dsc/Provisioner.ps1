@@ -1,12 +1,12 @@
 Configuration Provisioner
 {
   param (
-    [bool] $AttachDisk = $false
-    [bool] $WriteVault = $false
-    [string] $RoleID = "this_is_a_role_id"
+    [bool] $AttachDisk = $false,
+    [bool] $WriteVault = $false,
+    [string] $RoleID = "this_is_a_role_id",
     [string] $SecretID = "this_is_a_secret_id"
   )
-  
+
   Import-DscResource -ModuleName xStorage
 
   Node "localhost"

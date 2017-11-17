@@ -17,6 +17,14 @@
       "type": "securestring",
       "defaultValue": "NOT_PROVIDED"
     },
+    "vaultRoleID": {
+      "type": "securestring",
+      "defaultValue": "NOT_PROVIDED"
+    },
+    "vaultSecretID": {
+      "type": "securestring",
+      "defaultValue": "NOT_PROVIDED"
+    },
     "product": {
       "type": "object",
       "defaultValue": {
@@ -96,6 +104,12 @@
         "serverUrl": "https://POCChefServer.pocdomain.com",
         "organization": "ncr",
         "version": "13.1.31"
+      }
+    },
+    "vault": {
+      "type": "object",
+      "defaultValue": {
+        "enabled": false
       }
     },
     "activeDirectory": {
@@ -420,7 +434,10 @@
           "ModulesUrl": "[variables('windowsProvisionerDSCModule')]",
           "ConfigurationFunction": "Provisioner.ps1\\Provisioner",
           "Properties": {
-            "AttachDisk": "[parameters('infrastructure').disk.attachedDisk.enabled]"
+            "AttachDisk": "[parameters('infrastructure').disk.attachedDisk.enabled]",
+            "WriteVault": "[parameters('vault').enabled]",
+            "RoleID": "[parameters('vaultRoleID')]",
+            "SecretID": "[parameters('vaultSecretID')]"
           }
         }
       }

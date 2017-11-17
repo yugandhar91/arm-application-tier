@@ -9,6 +9,9 @@ DOMAIN=$4
 DOMAIN_USER=$5
 DOMAIN_USER_PASS=$6
 SUDO_GROUPS=$7
+WRITE_VAULT=$8
+ROLE_ID=$9
+SECRET_ID=${10}
 
 echo "ATTACH_DISK = $ATTACH_DISK" >> /cmd.log
 echo "MOUNT_POINT = $MOUNT_POINT" >> /cmd.log
@@ -55,4 +58,9 @@ if [ "$JOIN_DOMAIN" = 'True' ] ; then
     echo "%$group ALL=(ALL)  ALL" >> /etc/sudoers
   done
   export IFS="$OLDIFS"
+fi
+
+if [ "$WRITE_VAULT" = 'True' ] ; then
+  mkdir -p /etc/chef/hash
+  printf '{\n  "role_id": "%s"\n  "secret_id": "%s"\n}' $ROLE_ID $SECRET_ID > /etc/chef/hash/app.json
 fi

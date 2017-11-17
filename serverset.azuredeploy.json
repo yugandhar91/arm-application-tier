@@ -1,6 +1,6 @@
 {
   "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
-  "contentVersion": "1.0.38.0",
+  "contentVersion": "1.0.39.0",
   "parameters": {
     "adminUserName": {
       "type": "string",
@@ -124,7 +124,7 @@
     }
   },
   "variables": {
-    "script_version": "1.0.38.0",
+    "script_version": "1.0.39.0",
     "namingInfix": "[toLower(concat(parameters('product').name, parameters('product').tier_name))]",
     "avSetName": "[concat(variables('namingInfix'),'avset')]",
     "nicBaseName": "[concat(variables('namingInfix'),'nic')]",
@@ -499,7 +499,7 @@
           ]
         },
         "protectedSettings": {
-          "commandToExecute": "[concat('sh ', variables('centosProvisionerScriptName'), ' ', parameters('infrastructure')['disk']['attachedDisk']['enabled'], ' ', parameters('infrastructure')['disk']['attachedDisk']['linuxMountPath'], ' ', parameters('activeDirectory')['enabled'], ' ', parameters('activeDirectory')['domain'], ' ', parameters('activeDirectory')['username'], ' ', parameters('domainPassword'), ' ', parameters('activeDirectory')['linuxAdminGroups'], ' ', parameters('vault').enabled, ' ', parameters('vaultRoleID'), ' ', parameters('vaultSecretID')]"
+          "commandToExecute": "[concat('sh ', variables('centosProvisionerScriptName'), ' ', parameters('infrastructure')['disk']['attachedDisk']['enabled'], ' ', parameters('infrastructure')['disk']['attachedDisk']['linuxMountPath'], ' ', parameters('activeDirectory')['enabled'], ' ', parameters('activeDirectory')['domain'], ' ', parameters('activeDirectory')['username'], ' ', parameters('domainPassword'), ' ', parameters('activeDirectory')['linuxAdminGroups'], ' ', parameters('vault').enabled, ' ', parameters('vaultRoleID'), ' ', parameters('vaultSecretID'))]"
         }
       }
     },

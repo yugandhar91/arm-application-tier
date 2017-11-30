@@ -140,22 +140,29 @@ namespace :dsc do
   end
 end
 
+def bumpTemplateVersion(path)
+  require 'json'
+  template = JSON.parse File.read(path)
+  version = Gem::Version.new(template['contentVersion'])
+  new_version = "#{version.bump.to_s}.0"
+  template['contentVersion'] = new_version
+  template['variables']['script_version'] = new_version
+
+  File.write path, JSON.pretty_generate(template)
+  sh <<-CDE
+    git add #{path}
+    git commit -m "bumping #{path} version from #{version} to #{new_version}"
+  CDE
+  new_version
+end
 
 task bump: ["dsc:release"] do
-  require 'json'
-  content_file = './serverset.azuredeploy.json'
-  serverset_template = JSON.parse File.read(content_file)
-  version = Gem::Version.new(serverset_template['contentVersion'])
-  new_version = "#{version.bump.to_s}.0"
-  serverset_template['contentVersion'] = new_version
-  serverset_template['variables']['script_version'] = new_version
-
-  File.write content_file, JSON.pretty_generate(serverset_template)
+  serverversion = bumpTemplateVersion('./serverset.azuredeploy.json')
+  sqlversion = bumpTemplateVersion('./sqlpaas.azuredeploy.json')
+  raise "version mismatch in server v sqlpaas template versions" if serverversion != sqlversion
   sh <<-CDE
-    git add #{content_file}
-    git commit -m "bumping version from #{version} to #{new_version}"
-    git tag -a v#{new_version} -m \"Releasing v#{new_version}\"
+    git tag -a v#{serverversion} -m \"Releasing v#{serverversion}\"
     git push
-    git push origin v#{new_version}
+    git push origin v#{serverversion}
   CDE
 end

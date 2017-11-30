@@ -1,6 +1,6 @@
 {
   "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
-  "contentVersion": "1.1.2.0",
+  "contentVersion": "1.1.3.0",
   "parameters": {
     "clusterName": {
       "type": "string",
@@ -23,7 +23,7 @@
   },
   "variables": {
     "sqlServerName": "[concat(parameters('clusterName'), 'SQLPaaS')]",
-    "script_version": "1.1.2.0"
+    "script_version": "1.1.3.0"
   },
   "resources": [
     {
@@ -48,7 +48,10 @@
           "properties": {
             "endIpAddress": "0.0.0.0",
             "startIpAddress": "0.0.0.0"
-          }
+          },
+          "dependsOn": [
+            "[variables('sqlServerName')]"
+          ]
         }
       ]
     }

@@ -1,0 +1,380 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "contentVersion": "1.1.4.0",
+  "parameters": {
+    "adminUserName": {
+      "type": "string",
+      "minLength": 1
+    },
+    "adminPassword": {
+      "type": "securestring"
+    },
+    "chefBase64ValidatorKey": {
+      "type": "securestring",
+      "defaultValue": ""
+    },
+    "domainPassword": {
+      "type": "securestring",
+      "defaultValue": "NOT_PROVIDED"
+    },
+    "vaultRoleID": {
+      "type": "securestring",
+      "defaultValue": "NOT_PROVIDED"
+    },
+    "vaultSecretID": {
+      "type": "securestring",
+      "defaultValue": "NOT_PROVIDED"
+    },
+    "product": {
+      "type": "object",
+      "defaultValue": {
+        "name": "chf",
+        "tier_name": "web"
+      }
+    },
+    "network": {
+      "type": "object",
+      "defaultValue": {
+        "virtualNetwork": {
+          "name": "defaultVNet",
+          "resourceGroup": "SecNet"
+        },
+        "subnet": {
+          "name": "defaultWeb",
+          "vmBaseIP": "10.0.42",
+          "lastOctetStart": "7"
+        },
+        "loadBalancing": {
+          "enabled": true,
+          "ipType": "Private",
+          "ipConfiguration": {
+            "public": {
+              "name": "DNE",
+              "resourceGroup": "DNE"
+            },
+            "private": {
+              "subnet": "defaultWeb",
+              "staticIP": "10.0.42.6"
+            }
+          },
+          "rules": {
+            "take": "one",
+            "first": {
+              "port": 80,
+              "backendPort": 80,
+              "timeout": 5
+            },
+            "second": {
+              "port": 443,
+              "backendPort": 443,
+              "timeout": 5
+            }
+          }
+        }
+      }
+    },
+    "infrastructure": {
+      "type": "object",
+      "defaultValue": {
+        "numberOfServers": 2,
+        "serverSize": "Standard_A1",
+        "operatingSystem": {
+          "imagePublisher": "OpenLogic",
+          "imageOffer": "CentOS",
+          "version": "7.3"
+        },
+        "disk": {
+          "osDriveStorageAccountSize": "Standard_LRS",
+          "attachedDisk": {
+            "enabled": false,
+            "linuxMountPath": "/data",
+            "type": "Standard_LRS",
+            "sizeGB": 40
+          }
+        }
+      }
+    },
+    "chef": {
+      "type": "object",
+      "defaultValue": {
+        "enabled": false,
+        "policyGroup": "tech_demo",
+        "policyName": "web_server",
+        "validatorClientName": "POCValidator",
+        "serverUrl": "https://POCChefServer.pocdomain.com",
+        "organization": "ncr",
+        "version": "13.1.31"
+      }
+    },
+    "vault": {
+      "type": "object",
+      "defaultValue": {
+        "enabled": false
+      }
+    },
+    "activeDirectory": {
+      "type": "object",
+      "defaultValue": {
+        "enabled": false,
+        "domain": "contoso.com",
+        "username": "jason",
+        "joinOptions": 3,
+        "linuxAdminGroups": "apopsadmin"
+      }
+    },
+    "assignment": {
+      "type": "object",
+      "defaultValue": {
+        "vmID": 0,
+        "lbName": "loadbalancer",
+        "lbBackendPool": "backend",
+        "avSetName": "avset"
+      }
+    }
+  },
+  "variables": {
+    "script_version": "1.1.4.0",
+    "namingInfix": "[toLower(concat(parameters('product').name, parameters('product').tier_name))]",
+    "nicBaseName": "[concat(variables('namingInfix'),'nic')]",
+    "vmBaseName": "[concat(variables('namingInfix'),'vm')]",
+    "vnetID": "[resourceId(parameters('network').virtualNetwork.resourceGroup, 'Microsoft.Network/virtualNetworks', parameters('network').virtualNetwork.name)]",
+    "vmSubnetRef": "[concat(variables('vnetID'), '/subnets/', parameters('network').subnet.name)]",
+    "lbID": "[resourceId('Microsoft.Network/loadBalancers',parameters('assignment').lbName)]",
+    "backEndAddressPoolID": "[concat(variables('lbID'), '/backendAddressPools/', parameters('assignment').lbBackendPool)]",
+    "backendAddressPools": {
+      "true": [
+        {
+          "id": "[variables('backEndAddressPoolID')]"
+        }
+      ],
+      "false": [
+
+      ]
+    },
+    "nicDependency": {
+      "true": "[concat('Microsoft.Network/loadBalancers/', parameters('assignment').lbName)]",
+      "false": "[concat('Microsoft.Compute/availabilitySets/', parameters('assignment').avSetName)]"
+    },
+    "chefExtensionType": {
+      "WindowsServer": "ChefClient",
+      "CentOS": "LinuxChefClient"
+    },
+    "attachedDiskConfig": {
+      "true": [
+        {
+          "diskSizeGB": "[parameters('infrastructure').disk.attachedDisk.sizeGB]",
+          "lun": 0,
+          "createOption": "Empty"
+        }
+      ],
+      "false": [
+
+      ]
+    },
+    "windowsAndAttachedDisk": "[and(parameters('infrastructure').disk.attachedDisk.enabled, not(equals(parameters('infrastructure').operatingSystem.imageOffer, 'CentOS')))]",
+    "centOSAndAttachedDisk": "[and(parameters('infrastructure').disk.attachedDisk.enabled, equals(parameters('infrastructure').operatingSystem.imageOffer, 'CentOS'))]",
+    "windowsProvisionerModuleName": "Provisioner.zip",
+    "windowsProvisionerDSCModule": "[concat('https://raw.githubusercontent.com/jkerry/arm-application-tier/v', variables('script_version'), '/scripts/powershell_dsc/', variables('windowsProvisionerModuleName'))]",
+    "centosProvisionerScriptName": "deploy.sh",
+    "centosProvisionerScriptPath": "[concat('https://raw.githubusercontent.com/jkerry/arm-application-tier/v', variables('script_version'), '/scripts/bash/', variables('centosProvisionerScriptName'))]"
+  },
+  "resources": [
+    {
+      "name": "[concat(variables('nicBaseName'),parameters('assignment').vmID)]",
+      "type": "Microsoft.Network/networkInterfaces",
+      "location": "[resourceGroup().location]",
+      "dependsOn": [
+        "[variables('nicDependency')[string(parameters('network').loadBalancing.enabled)]]"
+      ],
+      "apiVersion": "2017-06-01",
+      "tags": {
+        "displayName": "[concat(variables('namingInfix'),'Nic',parameters('assignment').vmID)]"
+      },
+      "properties": {
+        "ipConfigurations": [
+          {
+            "name": "primary",
+            "properties": {
+              "privateIPAllocationMethod": "Static",
+              "privateIPAddress": "[concat(parameters('network').subnet.vmBaseIP, '.', add(parameters('network').subnet.lastOctetStart,parameters('assignment').vmID))]",
+              "subnet": {
+                "id": "[variables('vmSubnetRef')]"
+              },
+              "loadBalancerBackendAddressPools": "[variables('backendAddressPools')[string(parameters('network').loadBalancing.enabled)]]",
+              "loadBalancerInboundNatRules": [
+
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "[concat(variables('vmBaseName'), parameters('assignment').vmID)]",
+      "type": "Microsoft.Compute/virtualMachines",
+      "location": "[resourceGroup().location]",
+      "dependsOn": [
+        "[concat('Microsoft.Network/networkInterfaces/', variables('nicBaseName'), parameters('assignment').vmID)]",
+        "[concat('Microsoft.Compute/availabilitySets/', parameters('assignment').avSetName)]"
+      ],
+      "apiVersion": "2016-04-30-preview",
+      "tags": {
+        "displayName": "[concat(variables('vmBaseName'), parameters('assignment').vmID)]"
+      },
+      "properties": {
+        "availabilitySet": {
+          "id": "[resourceId('Microsoft.Compute/availabilitySets',parameters('assignment').avSetName)]"
+        },
+        "hardwareProfile": {
+          "vmSize": "[parameters('infrastructure').serverSize]"
+        },
+        "osProfile": {
+          "computerName": "[concat(variables('vmBaseName'), parameters('assignment').vmID)]",
+          "adminUsername": "[parameters('adminUserName')]",
+          "adminPassword": "[parameters('adminPassword')]"
+        },
+        "storageProfile": {
+          "imageReference": {
+            "publisher": "[parameters('infrastructure').operatingSystem.imagePublisher]",
+            "offer": "[parameters('infrastructure').operatingSystem.imageOffer]",
+            "sku": "[parameters('infrastructure').operatingSystem.version]",
+            "version": "latest"
+          },
+          "osDisk": {
+            "name": "[concat(variables('vmBaseName'), 'osdisk', parameters('assignment').vmID)]",
+            "caching": "ReadWrite",
+            "createOption": "FromImage",
+            "managedDisk": {
+              "storageAccountType": "[parameters('infrastructure').disk.osDriveStorageAccountSize]"
+            }
+          },
+          "dataDisks": "[variables('attachedDiskConfig')[string(parameters('infrastructure').disk.attachedDisk.enabled)]]"
+        },
+        "networkProfile": {
+          "networkInterfaces": [
+            {
+              "id": "[resourceId('Microsoft.Network/networkInterfaces', concat(variables('nicBaseName'), parameters('assignment').vmID))]"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "type": "Microsoft.Compute/virtualMachines/extensions",
+      "name": "[concat(variables('vmBaseName'), parameters('assignment').vmID,'/DSCProvisioner', parameters('assignment').vmID)]",
+      "apiVersion": "2015-06-15",
+      "location": "[resourceGroup().location]",
+      "condition": "[not(equals(parameters('infrastructure').operatingSystem.imageOffer, 'CentOS'))]",
+      "dependsOn": [
+        "[concat('Microsoft.Compute/virtualMachines/', variables('vmBaseName'), parameters('assignment').vmID)]"
+      ],
+      "properties": {
+        "publisher": "Microsoft.Powershell",
+        "type": "DSC",
+        "typeHandlerVersion": "2.7",
+        "autoUpgradeMinorVersion": true,
+        "settings": {
+          "ModulesUrl": "[variables('windowsProvisionerDSCModule')]",
+          "ConfigurationFunction": "Provisioner.ps1\\Provisioner",
+          "Properties": {
+            "AttachDisk": "[parameters('infrastructure').disk.attachedDisk.enabled]",
+            "WriteVault": "[parameters('vault').enabled]",
+            "RoleID": "[parameters('vaultRoleID')]",
+            "SecretID": "[parameters('vaultSecretID')]"
+          }
+        }
+      }
+    },
+    {
+      "apiVersion": "2015-06-15",
+      "type": "Microsoft.Compute/virtualMachines/extensions",
+      "name": "[concat(variables('vmBaseName'), parameters('assignment').vmID,'/joindomain', parameters('assignment').vmID)]",
+      "location": "[resourceGroup().location]",
+      "condition": "[and(parameters('activeDirectory')['enabled'], not(equals(parameters('infrastructure').operatingSystem.imageOffer, 'CentOS')))]",
+      "dependsOn": [
+        "[concat('Microsoft.Compute/virtualMachines/', variables('vmBaseName'), parameters('assignment').vmID)]",
+        "[concat('Microsoft.Compute/virtualMachines/', variables('vmBaseName'), parameters('assignment').vmID,'/extensions/', '/DSCProvisioner', parameters('assignment').vmID)]",
+        "[concat('Microsoft.Compute/virtualMachines/', variables('vmBaseName'), parameters('assignment').vmID,'/extensions/', '/centosProvisioner', parameters('assignment').vmID)]"
+      ],
+      "properties": {
+        "publisher": "Microsoft.Compute",
+        "type": "JsonADDomainExtension",
+        "typeHandlerVersion": "1.3",
+        "autoUpgradeMinorVersion": true,
+        "settings": {
+          "Name": "[parameters('activeDirectory')['domain']]",
+          "User": "[concat(parameters('activeDirectory')['domain'], '\\', parameters('activeDirectory')['username'])]",
+          "Restart": "true",
+          "Options": "[parameters('activeDirectory')['joinOptions']]",
+          "OUPath": ""
+        },
+        "protectedSettings": {
+          "Password": "[parameters('domainPassword')]"
+        }
+      }
+    },
+    {
+      "type": "Microsoft.Compute/virtualMachines/extensions",
+      "name": "[concat(variables('vmbaseName'), parameters('assignment').vmID,'/centosProvisioner', parameters('assignment').vmID)]",
+      "apiVersion": "2015-06-15",
+      "location": "[resourceGroup().location]",
+      "condition": "[equals(parameters('infrastructure').operatingSystem.imageOffer, 'CentOS')]",
+      "dependsOn": [
+        "[concat('Microsoft.Compute/virtualMachines/', variables('vmBaseName'), parameters('assignment').vmID)]",
+        "[concat('Microsoft.Compute/virtualMachines/', variables('vmBaseName'), parameters('assignment').vmID,'/extensions/', '/DSCProvisioner', parameters('assignment').vmID)]"
+      ],
+      "properties": {
+        "publisher": "Microsoft.Azure.Extensions",
+        "type": "CustomScript",
+        "typeHandlerVersion": "2.0",
+        "autoUpgradeMinorVersion": true,
+        "settings": {
+          "fileUris": [
+            "[variables('centosProvisionerScriptPath')]"
+          ]
+        },
+        "protectedSettings": {
+          "commandToExecute": "[concat('sh ', variables('centosProvisionerScriptName'), ' ', parameters('infrastructure')['disk']['attachedDisk']['enabled'], ' ', parameters('infrastructure')['disk']['attachedDisk']['linuxMountPath'], ' ', parameters('activeDirectory')['enabled'], ' ', parameters('activeDirectory')['domain'], ' ', parameters('activeDirectory')['username'], ' ', parameters('domainPassword'), ' ', parameters('activeDirectory')['linuxAdminGroups'], ' ', parameters('vault').enabled, ' ', parameters('vaultRoleID'), ' ', parameters('vaultSecretID'))]"
+        }
+      }
+    },
+    {
+      "type": "Microsoft.Compute/virtualMachines/extensions",
+      "name": "[concat(variables('vmBaseName'), parameters('assignment').vmID,'/ChefClient')]",
+      "apiVersion": "2015-05-01-preview",
+      "condition": "[parameters('chef').enabled]",
+      "dependsOn": [
+        "[concat('Microsoft.Compute/virtualMachines/', variables('vmBaseName'), parameters('assignment').vmID)]",
+        "[concat('Microsoft.Compute/virtualMachines/', variables('vmBaseName'), parameters('assignment').vmID,'/extensions/', '/DSCProvisioner', parameters('assignment').vmID)]",
+        "[concat('Microsoft.Compute/virtualMachines/', variables('vmBaseName'), parameters('assignment').vmID,'/extensions/', '/joindomain', parameters('assignment').vmID)]"
+      ],
+      "location": "[resourceGroup().location]",
+      "properties": {
+        "publisher": "Chef.Bootstrap.WindowsAzure",
+        "type": "[variables('chefExtensionType')[toLower(parameters('infrastructure').operatingSystem.imageOffer)]]",
+        "typeHandlerVersion": "1210.12",
+        "autoUpgradeMinorVersion": true,
+        "settings": {
+          "client_rb": "ssl_verify_mode :verify_none",
+          "bootstrap_version": "[parameters('chef').version]",
+          "daemon": "task",
+          "bootstrap_options": {
+            "chef_node_name": "[concat(variables('vmBaseName'), parameters('assignment').vmID)]",
+            "chef_server_url": "[concat(parameters('chef').serverUrl, '/organizations/', parameters('chef').organization)]",
+            "validation_client_name": "[parameters('chef').validatorClientName]"
+          },
+          "custom_json_attr": {
+            "policy_group": "[parameters('chef').policyGroup]",
+            "policy_name": "[parameters('chef').policyName]"
+          },
+          "validation_key_format": "base64encoded"
+        },
+        "protectedSettings": {
+          "validation_key": "[parameters('chefBase64ValidatorKey')]"
+        }
+      }
+    }
+  ],
+  "outputs": {
+  }
+}

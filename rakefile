@@ -145,10 +145,8 @@ def bumpTemplateVersion(path)
   template = JSON.parse File.read(path)
   version = Gem::Version.new(template['contentVersion'])
   new_version = "#{version.bump.to_s}.0"
-  template['contentVersion'] = new_version
-  template['variables']['script_version'] = new_version
-
-  File.write path, JSON.pretty_generate(template)
+  templateText = JSON.pretty_generate(template).gsub!(version, new_version)
+  File.write path, templateText
   sh <<-CDE
     git add #{path}
     git commit -m "bumping #{path} version from #{version} to #{new_version}"
@@ -157,9 +155,11 @@ def bumpTemplateVersion(path)
 end
 
 task bump: ["dsc:release"] do
+  serversetversion = bumpTemplateVersion('./serverset.azuredeploy.json')
   serverversion = bumpTemplateVersion('./serverset.azuredeploy.json')
   sqlversion = bumpTemplateVersion('./sqlpaas.azuredeploy.json')
-  raise "version mismatch in server v sqlpaas template versions" if serverversion != sqlversion
+  versions = [serversetversion, serverversion, sqlversion]
+  raise "version mismatch in server v sqlpaas template versions" if version.uniq.length != 1
   sh <<-CDE
     git tag -a v#{serverversion} -m \"Releasing v#{serverversion}\"
     git push

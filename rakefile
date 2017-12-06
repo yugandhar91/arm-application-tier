@@ -145,7 +145,7 @@ def bumpTemplateVersion(path)
   template = JSON.parse File.read(path)
   version = Gem::Version.new(template['contentVersion'])
   new_version = "#{version.bump.to_s}.0"
-  templateText = JSON.pretty_generate(template).gsub!(version, new_version)
+  templateText = JSON.pretty_generate(template).gsub!(version.to_s, new_version)
   File.write path, templateText
   sh <<-CDE
     git add #{path}

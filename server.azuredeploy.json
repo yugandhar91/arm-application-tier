@@ -151,10 +151,6 @@
 
       ]
     },
-    "nicDependency": {
-      "true": "[concat('Microsoft.Network/loadBalancers/', parameters('assignment').lbName)]",
-      "false": "[concat('Microsoft.Compute/availabilitySets/', parameters('assignment').avSetName)]"
-    },
     "chefExtensionType": {
       "WindowsServer": "ChefClient",
       "CentOS": "LinuxChefClient"
@@ -183,9 +179,6 @@
       "name": "[concat(variables('nicBaseName'),parameters('assignment').vmID)]",
       "type": "Microsoft.Network/networkInterfaces",
       "location": "[resourceGroup().location]",
-      "dependsOn": [
-        "[variables('nicDependency')[string(parameters('network').loadBalancing.enabled)]]"
-      ],
       "apiVersion": "2017-06-01",
       "tags": {
         "displayName": "[concat(variables('namingInfix'),'Nic',parameters('assignment').vmID)]"

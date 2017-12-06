@@ -252,6 +252,10 @@
         "[variables('secondLBProbe')]"
       ]
     },
+    "vmDependency": {
+      "true": "[concat('Microsoft.Network/loadBalancers/', variables('lbName'))]",
+      "false": "[concat('Microsoft.Compute/availabilitySets/', parameters('assignment').avSetName)]"
+    },
     "serverTemplate": "[concat('https://raw.githubusercontent.com/jkerry/arm-application-tier/v', variables('script_version'), '/server.azuredeploy.json')]"
   },
   "resources": [
@@ -280,6 +284,9 @@
       "name": "[variables('lbName')]",
       "location": "[resourceGroup().location]",
       "condition": "[parameters('network').loadBalancing.enabled]",
+      "dependsOn": [
+        "[concat('Microsoft.Compute/availabilitySets/', variables('avSetName'))]"
+      ],
       "tags": {
         "displayName": "[variables('lbName')]"
       },
@@ -305,6 +312,9 @@
         "name": "[concat(variables('namingInfix'),'VmSubdeployLoop')]",
         "count": "[parameters('infrastructure').numberOfServers]"
       },
+      "dependsOn": [
+        "[variables('vmDependency')[string(parameters('network').loadBalancing.enabled)]]"
+      ],
       "properties": {
         "mode": "Incremental",
         "templateLink": {

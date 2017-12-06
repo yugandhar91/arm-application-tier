@@ -207,8 +207,7 @@
       "type": "Microsoft.Compute/virtualMachines",
       "location": "[resourceGroup().location]",
       "dependsOn": [
-        "[concat('Microsoft.Network/networkInterfaces/', variables('nicBaseName'), parameters('assignment').vmID)]",
-        "[concat('Microsoft.Compute/availabilitySets/', parameters('assignment').avSetName)]"
+        "[concat('Microsoft.Network/networkInterfaces/', variables('nicBaseName'), parameters('assignment').vmID)]"
       ],
       "apiVersion": "2016-04-30-preview",
       "tags": {

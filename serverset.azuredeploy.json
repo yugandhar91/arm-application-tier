@@ -254,7 +254,7 @@
     },
     "vmDependency": {
       "true": "[concat('Microsoft.Network/loadBalancers/', variables('lbName'))]",
-      "false": "[concat('Microsoft.Compute/availabilitySets/', parameters('assignment').avSetName)]"
+      "false": "[concat('Microsoft.Compute/availabilitySets/', variables('avSetName'))]"
     },
     "serverTemplate": "[concat('https://raw.githubusercontent.com/jkerry/arm-application-tier/v', variables('script_version'), '/server.azuredeploy.json')]"
   },

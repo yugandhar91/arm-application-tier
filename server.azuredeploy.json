@@ -127,6 +127,7 @@
       "defaultValue": {
         "vmID": 0,
         "lbName": "loadbalancer",
+        "lbID": "lbID",
         "lbBackendPool": "backend",
         "avSetName": "avset"
       }
@@ -139,8 +140,7 @@
     "vmBaseName": "[concat(variables('namingInfix'),'vm')]",
     "vnetID": "[resourceId(parameters('network').virtualNetwork.resourceGroup, 'Microsoft.Network/virtualNetworks', parameters('network').virtualNetwork.name)]",
     "vmSubnetRef": "[concat(variables('vnetID'), '/subnets/', parameters('network').subnet.name)]",
-    "lbID": "[resourceId('Microsoft.Network/loadBalancers',parameters('assignment').lbName)]",
-    "backEndAddressPoolID": "[concat(variables('lbID'), '/backendAddressPools/', parameters('assignment').lbBackendPool)]",
+    "backEndAddressPoolID": "[concat(parameters('assignment').lbID, '/backendAddressPools/', parameters('assignment').lbBackendPool)]",
     "backendAddressPools": {
       "true": [
         {

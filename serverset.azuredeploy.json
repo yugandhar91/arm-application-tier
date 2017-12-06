@@ -252,7 +252,7 @@
         "[variables('secondLBProbe')]"
       ]
     },
-    "serverTemplate": "[concat('https://raw.githubusercontent.com/jkerry/arm-application-tier/v', variables('script_version'), '/server.azuredeploy.json')"
+    "serverTemplate": "[concat('https://raw.githubusercontent.com/jkerry/arm-application-tier/v', variables('script_version'), '/server.azuredeploy.json')]"
   },
   "resources": [
     {
@@ -299,17 +299,17 @@
     },
     {
       "apiVersion": "2015-01-01",
-      "name": "[concat(variables('namingInfix'), 'Srv', copyIndex())",
+      "name": "[concat(variables('namingInfix'), 'Srv', copyIndex())]",
       "type": "Microsoft.Resources/deployments",
+      "copy": {
+        "name": "[concat(variables('namingInfix'),'VmSubdeployLoop')]",
+        "count": "[parameters('infrastructure').numberOfServers]"
+      },
       "properties": {
         "mode": "Incremental",
         "templateLink": {
           "uri": "[variables('serverTemplate')]",
           "contentVersion": "1.1.7.0"
-        },
-        "copy": {
-          "name": "[concat(variables('namingInfix'),'VmSubdeployLoop')]",
-          "count": "[parameters('infrastructure').numberOfServers]"
         },
         "parameters": {
           "adminUserName": {
@@ -318,8 +318,8 @@
           "vaultRoleID": {
             "value": "[parameters('vaultRoleId')]"
           },
-          "vaultRoleSecretID": {
-            "value": "[parameters('vaultRoleSecretID')]"
+          "vaultSecretID": {
+            "value": "[parameters('vaultSecretID')]"
           },
           "adminPassword": {
             "value": "[parameters('adminPassword')]"
@@ -352,6 +352,7 @@
             "value": {
               "vmID": "[copyIndex()]",
               "lbName": "[variables('lbName')]",
+              "lbID": "[variables('lbID')]",
               "lbBackendPool": "[variables('lbBackendPool')]",
               "avSetName": "[variables('avSetName')]"
             }

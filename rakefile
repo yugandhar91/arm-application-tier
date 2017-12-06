@@ -156,10 +156,10 @@ end
 
 task bump: ["dsc:release"] do
   serversetversion = bumpTemplateVersion('./serverset.azuredeploy.json')
-  serverversion = bumpTemplateVersion('./serverset.azuredeploy.json')
+  serverversion = bumpTemplateVersion('./server.azuredeploy.json')
   sqlversion = bumpTemplateVersion('./sqlpaas.azuredeploy.json')
   versions = [serversetversion, serverversion, sqlversion]
-  raise "version mismatch in server v sqlpaas template versions" if version.uniq.length != 1
+  raise "version mismatch in template versions" if versions.uniq.length != 1
   sh <<-CDE
     git tag -a v#{serverversion} -m \"Releasing v#{serverversion}\"
     git push

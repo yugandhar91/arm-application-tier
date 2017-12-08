@@ -46,12 +46,14 @@
                         "first": {
                             "port": 80,
                             "backendPort": 80,
-                            "timeout": 5
+                            "timeout": 5,
+                            "loadDistribution": "Default"
                         },
                         "second": {
                             "port": 443,
                             "backendPort": 443,
-                            "timeout": 5
+                            "timeout": 5,
+                            "loadDistribution": "Default"
                         }
                     }
                 }

@@ -1,6 +1,6 @@
 {
   "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
-  "contentVersion": "1.2.1.0",
+  "contentVersion": "2.0.0.0",
   "parameters": {
     "adminUserName": {
       "type": "string",
@@ -62,12 +62,14 @@
             "first": {
               "port": 80,
               "backendPort": 80,
-              "timeout": 5
+              "timeout": 5,
+              "loadDistribution": "Default"
             },
             "second": {
               "port": 443,
               "backendPort": 443,
-              "timeout": 5
+              "timeout": 5,
+              "loadDistribution": "Default"
             }
           }
         }
@@ -124,7 +126,7 @@
     }
   },
   "variables": {
-    "script_version": "1.2.1.0",
+    "script_version": "2.0.0.0",
     "namingInfix": "[toLower(concat(parameters('product').name, parameters('product').tier_name))]",
     "avSetName": "[concat(variables('namingInfix'),'avset')]",
     "vnetID": "[resourceId(parameters('network').virtualNetwork.resourceGroup, 'Microsoft.Network/virtualNetworks', parameters('network').virtualNetwork.name)]",
@@ -171,6 +173,7 @@
     "lbRuleNameBase": "lbrule",
     "firstLBRulePort": "[parameters('network').loadbalancing.rules.first.port]",
     "firstLBRuleBackendPort": "[parameters('network').loadbalancing.rules.first.backendPort]",
+    "firstLBRuleLoadDistribution": "[parameters('network').loadbalancing.rules.first.loadDistribution]",
     "firstLBRuleTimeout": "[parameters('network').loadbalancing.rules.first.timeout]",
     "firstLBRule": {
       "name": "[concat(variables('lbRuleNameBase'),'P', variables('firstLBRulePort'))]",
@@ -186,6 +189,7 @@
         "backendPort": "[variables('firstLBRuleBackendPort')]",
         "enableFloatingIP": false,
         "idleTimeoutInMinutes": "[variables('firstLBRuleTimeout')]",
+        "loadDistribution": "[variables('firstLBRuleLoadDistribution')]",
         "probe": {
           "id": "[concat(variables('lbID'),'/probes/',variables('lbRuleNameBase'),'probeP', variables('firstLBRulePort'))]"
         }
@@ -193,6 +197,7 @@
     },
     "secondLBRulePort": "[parameters('network').loadbalancing.rules.second.port]",
     "secondLBRuleBackendPort": "[parameters('network').loadbalancing.rules.second.backendPort]",
+    "secondLBRuleLoadDistribution": "[parameters('network').loadbalancing.rules.second.loadDistribution]",
     "secondLBRuleTimeout": "[parameters('network').loadbalancing.rules.second.timeout]",
     "secondLBRule": {
       "name": "[concat(variables('lbRuleNameBase'),'P', variables('secondLBRulePort'))]",
@@ -208,6 +213,7 @@
         "backendPort": "[variables('secondLBRuleBackendPort')]",
         "enableFloatingIP": false,
         "idleTimeoutInMinutes": "[variables('secondLBRuleTimeout')]",
+        "loadDistribution": "[variables('secondLBRuleLoadDistribution')]",
         "probe": {
           "id": "[concat(variables('lbID'),'/probes/',variables('lbRuleNameBase'),'probeP', variables('secondLBRulePort'))]"
         }
@@ -319,7 +325,7 @@
         "mode": "Incremental",
         "templateLink": {
           "uri": "[variables('serverTemplate')]",
-          "contentVersion": "1.2.1.0"
+          "contentVersion": "2.0.0.0"
         },
         "parameters": {
           "adminUserName": {

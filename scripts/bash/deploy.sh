@@ -62,5 +62,5 @@ fi
 
 if [ "$WRITE_VAULT" = 'True' ] ; then
   mkdir -p /etc/chef/hash
-  printf '{\n  "role_id": "%s"\n  "secret_id": "%s"\n}' $ROLE_ID $SECRET_ID > /etc/chef/hash/app.json
+  printf '{\n  "role_id": "%s",\n  "secret_id": "%s"\n}' $ROLE_ID $SECRET_ID > /etc/chef/hash/app.json
 fi

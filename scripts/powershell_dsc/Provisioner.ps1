@@ -47,5 +47,13 @@ Configuration Provisioner
         Contents = (ConvertTo-Json $app_json)
       }
     }
+
+    $date = (Get-Date)
+    File timestamp
+    {
+      Ensure = "Present"
+      DestinationPath = "c:\dsclog.txt"
+      Contents = "Last DSC converge: $date"
+    }
   }
 }

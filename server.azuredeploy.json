@@ -135,9 +135,9 @@
   },
   "variables": {
     "script_version": "2.0.3.0",
-    "namingInfix": "[toLower(concat(parameters('product').name, parameters('product').tier_name))]",
-    "nicBaseName": "[concat(variables('namingInfix'),'nic')]",
-    "vmBaseName": "[concat(variables('namingInfix'),'vm')]",
+    "namingInfix": "[toLower(concat(parameters('product').name, parameters('product').tier_name, '-'))]",
+    "nicBaseName": "[concat(variables('namingInfix'),'nic-')]",
+    "vmBaseName": "[concat(variables('namingInfix'),'vm-')]",
     "vnetID": "[resourceId(parameters('network').virtualNetwork.resourceGroup, 'Microsoft.Network/virtualNetworks', parameters('network').virtualNetwork.name)]",
     "vmSubnetRef": "[concat(variables('vnetID'), '/subnets/', parameters('network').subnet.name)]",
     "backEndAddressPoolID": "[concat(parameters('assignment').lbID, '/backendAddressPools/', parameters('assignment').lbBackendPool)]",

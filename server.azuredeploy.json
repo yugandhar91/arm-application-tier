@@ -13,6 +13,10 @@
       "type": "securestring",
       "defaultValue": ""
     },
+    "domainUsername": {
+      "type": "securestring",
+      "defaultValue": "NOT_PROVIDED"
+    },
     "domainPassword": {
       "type": "securestring",
       "defaultValue": "NOT_PROVIDED"
@@ -117,7 +121,6 @@
       "defaultValue": {
         "enabled": false,
         "domain": "contoso.com",
-        "username": "jason",
         "joinOptions": 3,
         "linuxAdminGroups": "apopsadmin"
       }
@@ -295,7 +298,7 @@
         "autoUpgradeMinorVersion": true,
         "settings": {
           "Name": "[parameters('activeDirectory')['domain']]",
-          "User": "[concat(parameters('activeDirectory')['domain'], '\\', parameters('activeDirectory')['username'])]",
+          "User": "[concat(parameters('activeDirectory')['domain'], '\\', parameters('domainUsername'))]",
           "Restart": "true",
           "Options": "[parameters('activeDirectory')['joinOptions']]",
           "OUPath": ""

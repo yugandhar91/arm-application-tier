@@ -67,13 +67,15 @@
               "port": 80,
               "backendPort": 80,
               "timeout": 5,
-              "loadDistribution": "Default"
+              "loadDistribution": "Default",
+              "protocol": "Tcp"
             },
             "second": {
               "port": 443,
               "backendPort": 443,
               "timeout": 5,
-              "loadDistribution": "Default"
+              "loadDistribution": "Default",
+              "protocol": "Tcp"
             }
           }
         }
@@ -178,6 +180,7 @@
     "firstLBRuleBackendPort": "[parameters('network').loadbalancing.rules.first.backendPort]",
     "firstLBRuleLoadDistribution": "[parameters('network').loadbalancing.rules.first.loadDistribution]",
     "firstLBRuleTimeout": "[parameters('network').loadbalancing.rules.first.timeout]",
+    "firstLBRuleProtocol": "[parameters('network').loadbalancing.rules.first.protocol]",
     "firstLBRule": {
       "name": "[concat(variables('lbRuleNameBase'),'P', variables('firstLBRulePort'))]",
       "properties": {
@@ -187,7 +190,7 @@
         "backendAddressPool": {
           "id": "[variables('backEndAddressPoolID')]"
         },
-        "protocol": "Tcp",
+        "protocol": "[variables('firstLBRuleProtocol')]",
         "frontendPort": "[variables('firstLBRulePort')]",
         "backendPort": "[variables('firstLBRuleBackendPort')]",
         "enableFloatingIP": false,
@@ -202,6 +205,7 @@
     "secondLBRuleBackendPort": "[parameters('network').loadbalancing.rules.second.backendPort]",
     "secondLBRuleLoadDistribution": "[parameters('network').loadbalancing.rules.second.loadDistribution]",
     "secondLBRuleTimeout": "[parameters('network').loadbalancing.rules.second.timeout]",
+    "secondLBRuleProtocol": "[parameters('network').loadbalancing.rules.second.protocol]",
     "secondLBRule": {
       "name": "[concat(variables('lbRuleNameBase'),'P', variables('secondLBRulePort'))]",
       "properties": {
@@ -211,7 +215,7 @@
         "backendAddressPool": {
           "id": "[variables('backEndAddressPoolID')]"
         },
-        "protocol": "Tcp",
+        "protocol": "[variables('secondLBRuleProtocol')]",
         "frontendPort": "[variables('secondLBRulePort')]",
         "backendPort": "[variables('secondLBRuleBackendPort')]",
         "enableFloatingIP": false,

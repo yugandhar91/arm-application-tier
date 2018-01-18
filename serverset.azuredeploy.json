@@ -1,6 +1,6 @@
 {
   "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
-  "contentVersion": "3.1.1.0",
+  "contentVersion": "3.1.2.0",
   "parameters": {
     "adminUserName": {
       "type": "string",
@@ -131,7 +131,7 @@
     }
   },
   "variables": {
-    "script_version": "3.1.1.0",
+    "script_version": "3.1.2.0",
     "namingInfix": "[toLower(concat(parameters('product').name, parameters('product').tier_name))]",
     "avSetName": "[concat(variables('namingInfix'),'avset')]",
     "vnetID": "[resourceId(parameters('network').virtualNetwork.resourceGroup, 'Microsoft.Network/virtualNetworks', parameters('network').virtualNetwork.name)]",
@@ -332,7 +332,7 @@
         "mode": "Incremental",
         "templateLink": {
           "uri": "[variables('serverTemplate')]",
-          "contentVersion": "3.1.1.0"
+          "contentVersion": "3.1.2.0"
         },
         "parameters": {
           "adminUserName": {

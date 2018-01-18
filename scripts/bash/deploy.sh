@@ -13,13 +13,7 @@ WRITE_VAULT=$8
 ROLE_ID=$9
 SECRET_ID=${10}
 
-echo "ATTACH_DISK = $ATTACH_DISK" >> /cmd.log
-echo "MOUNT_POINT = $MOUNT_POINT" >> /cmd.log
-echo "JOIN_DOMAIN = $JOIN_DOMAIN" >> /cmd.log
-echo "DOMAIN = $DOMAIN" >> /cmd.log
-echo "DOMAIN_USER = $DOMAIN_USER" >> /cmd.log
-echo "DOMAIN_USER_PASS = $DOMAIN_USER_PASS" >> /cmd.log
-echo "SUDO_GROUPS = $SUDO_GROUPS" >> /cmd.log
+[ -e /cmd.log ] && rm /cmd.log
 
 if [ "$ATTACH_DISK" = 'True' ] ; then
   dev=$(sudo parted -l 2>&1 >/dev/null | grep  "unrecognised disk label" |  sed -En 's/Error: (.*):.*/\1/p')

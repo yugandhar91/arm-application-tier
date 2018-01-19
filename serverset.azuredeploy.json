@@ -1,6 +1,6 @@
 {
   "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
-  "contentVersion": "3.1.3.0",
+  "contentVersion": "4.0.0.0",
   "parameters": {
     "adminUserName": {
       "type": "string",
@@ -26,6 +26,18 @@
       "defaultValue": "NOT_PROVIDED"
     },
     "vaultSecretID": {
+      "type": "securestring",
+      "defaultValue": "NOT_PROVIDED"
+    },
+    "encryptionAADClientID": {
+      "type": "securestring",
+      "defaultValue": "NOT_PROVIDED"
+    },
+    "encryptionAADClientSecret": {
+      "type": "securestring",
+      "defaultValue": "NOT_PROVIDED"
+    },
+    "encryptionPassphrase": {
       "type": "securestring",
       "defaultValue": "NOT_PROVIDED"
     },
@@ -131,7 +143,7 @@
     }
   },
   "variables": {
-    "script_version": "3.1.3.0",
+    "script_version": "4.0.0.0",
     "namingInfix": "[toLower(concat(parameters('product').name, parameters('product').tier_name))]",
     "avSetName": "[concat(variables('namingInfix'),'avset')]",
     "vnetID": "[resourceId(parameters('network').virtualNetwork.resourceGroup, 'Microsoft.Network/virtualNetworks', parameters('network').virtualNetwork.name)]",
@@ -332,7 +344,7 @@
         "mode": "Incremental",
         "templateLink": {
           "uri": "[variables('serverTemplate')]",
-          "contentVersion": "3.1.3.0"
+          "contentVersion": "4.0.0.0"
         },
         "parameters": {
           "adminUserName": {
@@ -343,6 +355,15 @@
           },
           "vaultSecretID": {
             "value": "[parameters('vaultSecretID')]"
+          },
+          "encryptionAADClientID": {
+            "value": "[parameters('encryptionAADClientID')]"
+          },
+          "encryptionAADClientSecret": {
+            "value": "[parameters('encryptionAADClientSecret')]"
+          },
+          "encryptionPassphrase": {
+            "value": "[pasameters('encryptionPassphrase')]"
           },
           "adminPassword": {
             "value": "[parameters('adminPassword')]"

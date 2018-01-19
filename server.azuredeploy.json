@@ -1,6 +1,6 @@
 {
   "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
-  "contentVersion": "4.0.5.0",
+  "contentVersion": "4.0.6.0",
   "parameters": {
     "adminUserName": {
       "type": "string",
@@ -112,7 +112,7 @@
             "keyVaultName": "NOT_Provided",
             "sequenceNumber": "1.0",
             "keyVaultSubscriptionID": "NOT_Provided",
-            "keyVaultReourceGroup": "NOT_Provided",
+            "keyVaultResourceGroup": "NOT_Provided",
             "KeK": {
               "name": "KeK",
               "algorithm": "RSA-OAEP",
@@ -161,7 +161,7 @@
     }
   },
   "variables": {
-    "script_version": "4.0.5.0",
+    "script_version": "4.0.6.0",
     "namingInfix": "[toLower(concat(parameters('product').name, parameters('product').tier_name, '-'))]",
     "nicBaseName": "[concat(variables('namingInfix'),'nic')]",
     "vmBaseName": "[concat(variables('namingInfix'),'vm')]",
@@ -377,7 +377,7 @@
           }
         },
         "templateLink": {
-          "contentVersion": "4.0.5.0",
+          "contentVersion": "4.0.6.0",
           "uri": "[variables('updateVmUrl')]"
         }
       }

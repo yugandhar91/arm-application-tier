@@ -301,7 +301,7 @@
       "dependsOn": [
         "[concat('Microsoft.Compute/virtualMachines/', variables('vmName'))]"
       ],
-      "condition": "[not(equals(parameters('infrastructure').operatingSystem.imageOffer, 'CentOS'))]",
+      "condition": "[and(parameters('infrastructure').disk.encryption.enabled, not(equals(parameters('infrastructure').operatingSystem.imageOffer, 'CentOS')))]",
       "apiVersion": "2016-04-30-preview",
       "location": "[resourceGroup().location]",
       "properties": {
@@ -330,7 +330,7 @@
         "[concat('Microsoft.Compute/virtualMachines/', variables('vmName'))]",
         "[concat('Microsoft.Compute/virtualMachines/', variables('vmName'),'/extensions/WindowsDiskEnryption')]"
       ],
-      "condition": "[equals(parameters('infrastructure').operatingSystem.imageOffer, 'CentOS')]",
+      "condition": "[and(parameters('infrastructure').disk.encryption.enabled, equals(parameters('infrastructure').operatingSystem.imageOffer, 'CentOS'))]",
       "apiVersion": "2015-06-15",
       "location": "[resourceGroup().location]",
       "properties": {

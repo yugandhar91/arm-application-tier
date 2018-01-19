@@ -194,6 +194,7 @@
       "true": [
         {
           "diskSizeGB": "[parameters('infrastructure').disk.attachedDisk.sizeGB]",
+          "name": "[concat(variables('vmName'), '-disk-data-0')]",
           "lun": 0,
           "createOption": "Empty"
         }
@@ -276,7 +277,7 @@
             "version": "latest"
           },
           "osDisk": {
-            "name": "[concat(variables('vmBaseName'), 'osdisk', parameters('assignment').vmID)]",
+            "name": "[concat(variables('vmName'), '-disk-os')]",
             "caching": "ReadWrite",
             "createOption": "FromImage",
             "managedDisk": {

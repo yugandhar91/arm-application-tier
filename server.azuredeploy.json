@@ -1,6 +1,6 @@
 {
   "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
-  "contentVersion": "4.0.8.0",
+  "contentVersion": "4.0.9.0",
   "parameters": {
     "adminUserName": {
       "type": "string",
@@ -161,7 +161,7 @@
     }
   },
   "variables": {
-    "script_version": "4.0.8.0",
+    "script_version": "4.0.9.0",
     "namingInfix": "[toLower(concat(parameters('product').name, parameters('product').tier_name, '-'))]",
     "nicBaseName": "[concat(variables('namingInfix'),'nic')]",
     "vmBaseName": "[concat(variables('namingInfix'),'vm')]",
@@ -377,7 +377,7 @@
           }
         },
         "templateLink": {
-          "contentVersion": "4.0.8.0",
+          "contentVersion": "4.0.9.0",
           "uri": "[variables('updateVmUrl')]"
         }
       }
@@ -421,8 +421,8 @@
         "[concat('Microsoft.Compute/virtualMachines/', variables('vmName'))]",
         "[concat('Microsoft.Compute/virtualMachines/', variables('vmName'),'/extensions/WindowsDiskEnryption')]",
         "[concat('Microsoft.Compute/virtualMachines/', variables('vmName'),'/extensions/LinuxDiskEnryption')]",
-        "[concat('Microsoft.Compute/virtualMachines/', variables('vmName'),'/extensions/DSCProvisioner)]",
-        "[concat('Microsoft.Compute/virtualMachines/', variables('vmName'),'/extensions/centosProvisioner)]",
+        "[concat('Microsoft.Compute/virtualMachines/', variables('vmName'),'/extensions/DSCProvisioner')]",
+        "[concat('Microsoft.Compute/virtualMachines/', variables('vmName'),'/extensions/centosProvisioner')]",
         "[concat('Microsoft.Resources/deployments/', variables('vmName'), '-encryption-update')]"
       ],
       "properties": {

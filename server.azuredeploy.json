@@ -1,6 +1,6 @@
 {
   "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
-  "contentVersion": "4.0.10.0",
+  "contentVersion": "4.0.11.0",
   "parameters": {
     "adminUserName": {
       "type": "string",
@@ -161,7 +161,7 @@
     }
   },
   "variables": {
-    "script_version": "4.0.10.0",
+    "script_version": "4.0.11.0",
     "namingInfix": "[toLower(concat(parameters('product').name, parameters('product').tier_name, '-'))]",
     "nicBaseName": "[concat(variables('namingInfix'),'nic')]",
     "vmBaseName": "[concat(variables('namingInfix'),'vm')]",
@@ -214,7 +214,7 @@
     "KeKName": "[parameters('infrastructure').disk.encryption.KeK.name]",
     "KeKID": "[parameters('infrastructure').disk.encryption.KeK.keyVersion]",
     "encryptionKeKAlgorithm": "[parameters('infrastructure').disk.encryption.KeK.algorithm]",
-    "encryptionKeKURL": "[concat(variables('encryptionKeyVaultURL'), '/', variables('KeKName'), '/', variables('KeKID'))]",
+    "encryptionKeKURL": "[concat(variables('encryptionKeyVaultURL'), '/keys/', variables('KeKName'), '/', variables('KeKID'))]",
     "encryptionKeyVaultResourceID": "[concat(parameters('infrastructure').disk.encryption.keyVaultSubscriptionID,'/resourceGroups/',parameters('infrastructure').disk.encryption.keyVaultResourceGroup,'/providers/Microsoft.KeyVault/vaults/', parameters('infrastructure').disk.encryption.keyVaultName)]",
     "serverTemplate": "[concat('https://raw.githubusercontent.com/jkerry/arm-application-tier/v', variables('script_version'), '/encrypt_disks.azuredeploy.json')]"
   },
@@ -377,7 +377,7 @@
           }
         },
         "templateLink": {
-          "contentVersion": "4.0.10.0",
+          "contentVersion": "4.0.11.0",
           "uri": "[variables('updateVmUrl')]"
         }
       }

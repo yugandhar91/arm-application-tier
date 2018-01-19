@@ -1,6 +1,6 @@
 {
   "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
-  "contentVersion": "4.0.14.0",
+  "contentVersion": "4.0.15.0",
   "parameters": {
     "adminUserName": {
       "type": "string",
@@ -161,7 +161,7 @@
     }
   },
   "variables": {
-    "script_version": "4.0.14.0",
+    "script_version": "4.0.15.0",
     "namingInfix": "[toLower(concat(parameters('product').name, parameters('product').tier_name, '-'))]",
     "nicBaseName": "[concat(variables('namingInfix'),'nic')]",
     "vmBaseName": "[concat(variables('namingInfix'),'vm')]",
@@ -209,7 +209,7 @@
     "windowsProvisionerDSCModule": "[concat('https://raw.githubusercontent.com/jkerry/arm-application-tier/v', variables('script_version'), '/scripts/powershell_dsc/', variables('windowsProvisionerModuleName'))]",
     "centosProvisionerScriptName": "deploy.sh",
     "centosProvisionerScriptPath": "[concat('https://raw.githubusercontent.com/jkerry/arm-application-tier/v', variables('script_version'), '/scripts/bash/', variables('centosProvisionerScriptName'))]",
-    "encryptionKeyVaultURL": "[concat('https://', parameters('infrastructure').disk.encryption.keyVaultName, '.vault.azure.net/')]",
+    "encryptionKeyVaultURL": "[concat('https://', parameters('infrastructure').disk.encryption.keyVaultName, '.vault.azure.net')]",
     "encryptionSequenceNumber": "[parameters('infrastructure').disk.encryption.sequenceNumber]",
     "KeKName": "[parameters('infrastructure').disk.encryption.KeK.name]",
     "KeKID": "[parameters('infrastructure').disk.encryption.KeK.keyVersion]",
@@ -377,7 +377,7 @@
           }
         },
         "templateLink": {
-          "contentVersion": "4.0.14.0",
+          "contentVersion": "4.0.15.0",
           "uri": "[variables('serverEncryptionUodateTemplate')]"
         }
       }

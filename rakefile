@@ -155,10 +155,11 @@ def bumpTemplateVersion(path)
 end
 
 task bump: ["dsc:release"] do
+  encrypt_disks_version = bumpTemplateVersion('./encrypt_disks.azuredeploy.json')
   serversetversion = bumpTemplateVersion('./serverset.azuredeploy.json')
   serverversion = bumpTemplateVersion('./server.azuredeploy.json')
   sqlversion = bumpTemplateVersion('./sqlpaas.azuredeploy.json')
-  versions = [serversetversion, serverversion, sqlversion]
+  versions = [encrypt_disks_version, serversetversion, serverversion, sqlversion]
   raise "version mismatch in template versions" if versions.uniq.length != 1
   sh <<-CDE
     git tag -a v#{serverversion} -m \"Releasing v#{serverversion}\"

@@ -1,6 +1,6 @@
 {
   "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
-  "contentVersion": "4.0.17.0",
+  "contentVersion": "4.0.18.0",
   "parameters": {
     "adminUserName": {
       "type": "string",
@@ -162,7 +162,7 @@
     }
   },
   "variables": {
-    "script_version": "4.0.17.0",
+    "script_version": "4.0.18.0",
     "namingInfix": "[toLower(concat(parameters('product').name, parameters('product').tier_name, '-'))]",
     "nicBaseName": "[concat(variables('namingInfix'),'nic')]",
     "vmBaseName": "[concat(variables('namingInfix'),'vm')]",
@@ -339,7 +339,7 @@
         "autoUpgradeMinorVersion": true,
         "settings": {
           "Name": "[parameters('activeDirectory')['domain']]",
-          "User": "[concat(parameters('activeDirectory')['domain'], '\\', parameters('domainUsername'))]",
+          "User": "[concat(parameters('domainUsername'), '@', parameters('activeDirectory')['domain'])]",
           "Restart": "true",
           "Options": "[parameters('activeDirectory')['joinOptions']]",
           "OUPath": "[parameters('activeDirectory')['OUPath']]"
@@ -461,7 +461,7 @@
           }
         },
         "templateLink": {
-          "contentVersion": "4.0.17.0",
+          "contentVersion": "4.0.18.0",
           "uri": "[variables('serverEncryptionUodateTemplate')]"
         }
       }

@@ -1,6 +1,6 @@
 {
   "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
-  "contentVersion": "4.0.16.0",
+  "contentVersion": "4.0.17.0",
   "parameters": {
     "adminUserName": {
       "type": "string",
@@ -145,6 +145,7 @@
       "defaultValue": {
         "enabled": false,
         "domain": "contoso.com",
+        "OUPath": "CN=Computers,DC=contoso,DC=com",
         "joinOptions": 3,
         "linuxAdminGroups": "apopsadmin"
       }
@@ -161,7 +162,7 @@
     }
   },
   "variables": {
-    "script_version": "4.0.16.0",
+    "script_version": "4.0.17.0",
     "namingInfix": "[toLower(concat(parameters('product').name, parameters('product').tier_name, '-'))]",
     "nicBaseName": "[concat(variables('namingInfix'),'nic')]",
     "vmBaseName": "[concat(variables('namingInfix'),'vm')]",
@@ -341,7 +342,7 @@
           "User": "[concat(parameters('activeDirectory')['domain'], '\\', parameters('domainUsername'))]",
           "Restart": "true",
           "Options": "[parameters('activeDirectory')['joinOptions']]",
-          "OUPath": ""
+          "OUPath": "[parameters('activeDirectory')['OUPath']]"
         },
         "protectedSettings": {
           "Password": "[parameters('domainPassword')]"
@@ -460,7 +461,7 @@
           }
         },
         "templateLink": {
-          "contentVersion": "4.0.16.0",
+          "contentVersion": "4.0.17.0",
           "uri": "[variables('serverEncryptionUodateTemplate')]"
         }
       }

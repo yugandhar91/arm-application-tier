@@ -1,6 +1,6 @@
 {
   "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
-  "contentVersion": "4.0.20.0",
+  "contentVersion": "4.0.21.0",
   "parameters": {
     "adminUserName": {
       "type": "string",
@@ -161,7 +161,7 @@
     }
   },
   "variables": {
-    "script_version": "4.0.20.0",
+    "script_version": "4.0.21.0",
     "namingInfix": "[toLower(concat(parameters('product').name, parameters('product').tier_name, '-'))]",
     "nicBaseName": "[concat(variables('namingInfix'),'nic')]",
     "vmBaseName": "[concat(variables('namingInfix'),'vm')]",
@@ -417,7 +417,7 @@
         "type": "AzureDiskEncryptionForLinux",
         "typeHandlerVersion": "0.1",
         "settings": {
-          "AADClientID": "[parameters('encryptionAADClientID')",
+          "AADClientID": "[parameters('encryptionAADClientID')]",
           "DiskFormatQuery": "",
           "EncryptionOperation": "EnableEncryption",
           "KeyEncryptionAlgorithm": "[variables('encryptionKeKAlgorithm')]",
@@ -460,7 +460,7 @@
           }
         },
         "templateLink": {
-          "contentVersion": "4.0.20.0",
+          "contentVersion": "4.0.21.0",
           "uri": "[variables('serverEncryptionUodateTemplate')]"
         }
       }

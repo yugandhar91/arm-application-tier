@@ -443,6 +443,7 @@
       ],
       "name": "[concat(variables('vmName'), '-encryption-update')]",
       "type": "Microsoft.Resources/deployments",
+      "condition": "[not(equals(reference(resourceId('Microsoft.Compute/virtualMachines/extensions',  variables('vmName'), variables('encryptionExtensionName'))).instanceView.statuses[0].message, 'Encryption succeeded for data volumes'))]",
       "properties": {
         "mode": "Incremental",
         "parameters": {

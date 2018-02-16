@@ -158,6 +158,14 @@
         "lbBackendPool": "backend",
         "avSetName": "avset"
       }
+    },
+    "oms": {
+      "type": "object",
+      "defaultValue": {
+        "enabled": false,
+        "OMSWorkspaceID": "DNE",
+        "OMSWorkspaceKey": "DNE"
+      }
     }
   },
   "variables": {
@@ -203,6 +211,11 @@
 
       ]
     },
+    "OMSExtensionTypes": {
+      "windowsserver": "MicrosoftMonitoringAgent",
+      "centos": "OmsAgentForLinux"
+    },
+    "OMSExtensionType": "[variables('OMSExtensionTypes')[toLower(parameters('infrastructure').operatingSystem.imageOffer)]]",
     "windowsAndAttachedDisk": "[and(parameters('infrastructure').disk.attachedDisk.enabled, not(equals(parameters('infrastructure').operatingSystem.imageOffer, 'CentOS')))]",
     "centOSAndAttachedDisk": "[and(parameters('infrastructure').disk.attachedDisk.enabled, equals(parameters('infrastructure').operatingSystem.imageOffer, 'CentOS'))]",
     "windowsProvisionerModuleName": "Provisioner.zip",
@@ -500,6 +513,32 @@
         },
         "protectedSettings": {
           "validation_key": "[parameters('chefBase64ValidatorKey')]"
+        }
+      }
+    },
+    {
+      "type": "Microsoft.Compute/virtualMachines/extensions",
+      "name": "[concat(variables('vmName'),'/OMSClient')]",
+      "apiVersion": "2015-05-01-preview",
+      "dependsOn": [
+        "[concat('Microsoft.Compute/virtualMachines/', variables('vmName'))]",
+        "[concat('Microsoft.Compute/virtualMachines/', variables('vmName'),'/extensions/DSCProvisioner')]",
+        "[concat('Microsoft.Compute/virtualMachines/', variables('vmName'),'/extensions/joindomain')]",
+        "[resourceId('Microsoft.Compute/virtualMachines/extensions',  variables('vmName'), variables('encryptionExtensionName'))]",
+        "[concat('Microsoft.Resources/deployments/', variables('vmName'), '-encryption-update')]",
+        "[concat('Microsoft.Compute/virtualMachines/extensions', variables('vmName'), '/ChefClient')]"
+      ],
+      "location": "[resourceGroup().location]",
+      "properties": {
+        "publisher": "Microsoft.EnterpriseCloud.Monitoring",
+        "type": "[variables('OMSExtensionType')]",
+        "typeHandlerVersion": "1.0",
+        "autoUpgradeMinorVersion": true,
+        "settings": {
+          "workspaceId": "[parameters('oms').OMSWorkspaceId]"
+        },
+        "protectedSettings": {
+          "workspaceKey": "[parameters('oms').OMSWorkspaceKey]"
         }
       }
     }

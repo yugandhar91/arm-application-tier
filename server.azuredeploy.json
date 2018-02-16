@@ -212,8 +212,8 @@
       ]
     },
     "OMSExtensionTypes": {
-      "WindowsServer": "MicrosoftMonitoringAgent",
-      "CentOS": "OmsAgentForLinux"
+      "windowsserver": "MicrosoftMonitoringAgent",
+      "centos": "OmsAgentForLinux"
     },
     "OMSExtensionType": "[variables('OMSExtensionTypes')[toLower(parameters('infrastructure').operatingSystem.imageOffer)]]",
     "windowsAndAttachedDisk": "[and(parameters('infrastructure').disk.attachedDisk.enabled, not(equals(parameters('infrastructure').operatingSystem.imageOffer, 'CentOS')))]",

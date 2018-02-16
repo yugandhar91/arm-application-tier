@@ -526,7 +526,7 @@
         "[concat('Microsoft.Compute/virtualMachines/', variables('vmName'),'/extensions/joindomain')]",
         "[resourceId('Microsoft.Compute/virtualMachines/extensions',  variables('vmName'), variables('encryptionExtensionName'))]",
         "[concat('Microsoft.Resources/deployments/', variables('vmName'), '-encryption-update')]",
-        "[concat('Microsoft.Compute/virtualMachines/extensions', variables('vmName'), '/ChefClient')]"
+        "[concat('Microsoft.Compute/virtualMachines/extensions/', variables('vmName'), '/ChefClient')]"
       ],
       "location": "[resourceGroup().location]",
       "properties": {

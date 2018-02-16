@@ -140,6 +140,14 @@
         "joinOptions": 3,
         "linuxAdminGroups": "apopsadmin"
       }
+    },
+    "oms": {
+      "type": "object",
+      "defaultValue": {
+        "enabled": false,
+        "OMSWorkspaceID": "DNE",
+        "OMSWorkspaceKey": "DNE"
+      }
     }
   },
   "variables": {
@@ -394,6 +402,9 @@
           },
           "vault": {
             "value": "[parameters('vault')]"
+          },
+          "oms": {
+            "value": "[parameters('oms')]"
           },
           "assignment": {
             "value": {

@@ -11,7 +11,8 @@ Configuration Provisioner
 
   Node "localhost"
   {
-    if($AttachDisk)
+    $Disk2PartitionStyle = Get-Disk | ?{ $_.Number -eq 2 } | %{ $_.PartitionStyle }
+    if($AttachDisk -and ($Disk2PartitionStyle -eq 'raw'))
     {
       xWaitforDisk Disk2
       {

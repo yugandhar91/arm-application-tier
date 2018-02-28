@@ -1,6 +1,6 @@
 {
   "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
-  "contentVersion": "4.0.33.0",
+  "contentVersion": "4.1.0.0",
   "parameters": {
     "adminUserName": {
       "type": "string",
@@ -53,7 +53,8 @@
       "defaultValue": {
         "virtualNetwork": {
           "name": "defaultVNet",
-          "resourceGroup": "SecNet"
+          "resourceGroup": "SecNet",
+          "subscriptionID": null
         },
         "subnet": {
           "name": "defaultWeb",
@@ -169,13 +170,14 @@
     }
   },
   "variables": {
-    "script_version": "4.0.33.0",
+    "script_version": "4.1.0.0",
     "namingInfix": "[toLower(concat(parameters('product').name, parameters('product').tier_name, '-'))]",
     "nicBaseName": "[concat(variables('namingInfix'),'nic')]",
     "vmBaseName": "[concat(variables('namingInfix'),'vm')]",
     "vmName": "[concat(variables('vmBaseName'), parameters('assignment').vmID)]",
     "nicName": "[concat(variables('nicBaseName'), parameters('assignment').vmID)]",
-    "vnetID": "[resourceId(parameters('network').virtualNetwork.resourceGroup, 'Microsoft.Network/virtualNetworks', parameters('network').virtualNetwork.name)]",
+    "vnetSubscriptionId": "[if(equals(parameters('network').virtualNetwork.subscriptionId, null), subscription().id, parameters('network').virtualNetwork.subscriptionId)]",
+    "vnetID": "[resourceId(variables('vnetSubscriptionId'), parameters('network').virtualNetwork.resourceGroup, 'Microsoft.Network/virtualNetworks', parameters('network').virtualNetwork.name)]",
     "vmSubnetRef": "[concat(variables('vnetID'), '/subnets/', parameters('network').subnet.name)]",
     "backEndAddressPoolID": "[concat(parameters('assignment').lbID, '/backendAddressPools/', parameters('assignment').lbBackendPool)]",
     "backendAddressPools": {
@@ -473,7 +475,7 @@
           }
         },
         "templateLink": {
-          "contentVersion": "4.0.33.0",
+          "contentVersion": "4.1.0.0",
           "uri": "[variables('serverEncryptionUodateTemplate')]"
         }
       }

@@ -1,6 +1,6 @@
 {
   "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
-  "contentVersion": "4.1.5.0",
+  "contentVersion": "4.1.6.0",
   "parameters": {
     "adminUserName": {
       "type": "string",
@@ -170,7 +170,7 @@
     }
   },
   "variables": {
-    "script_version": "4.1.5.0",
+    "script_version": "4.1.6.0",
     "namingInfix": "[toLower(concat(parameters('product').name, parameters('product').tier_name, '-'))]",
     "nicBaseName": "[concat(variables('namingInfix'),'nic')]",
     "vmBaseName": "[concat(variables('namingInfix'),'vm')]",
@@ -469,14 +469,14 @@
             "value": "[variables('encryptionKeyVaultResourceID')]"
           },
           "keyVaultSecretUrl": {
-            "value": "[reference(resourceId('Microsoft.Compute/virtualMachines/extensions',  variables('vmName'), variables('encryptionExtensionName'))).instanceView.statuses[0].message]"
+            "value": "[if(not(parameters('infrastructure').disk.encryption.enabled), 'https://null', reference(resourceId('Microsoft.Compute/virtualMachines/extensions',  variables('vmName'), variables('encryptionExtensionName'))).instanceView.statuses[0].message)]"
           },
           "vmName": {
             "value": "[variables('vmName')]"
           }
         },
         "templateLink": {
-          "contentVersion": "4.1.5.0",
+          "contentVersion": "4.1.6.0",
           "uri": "[variables('serverEncryptionUodateTemplate')]"
         }
       }

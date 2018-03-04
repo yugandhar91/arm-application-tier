@@ -50,7 +50,7 @@ Configuration Provisioner
         `$app_json = "$app_json_contents"
         if(-not (Test-Path "c:\chef\hash\app.json"))
         {
-          return $false
+          return `$false
         }
         return (Get-content "c:\chef\hash\app.json") -eq "$app_json_contents"
 "@

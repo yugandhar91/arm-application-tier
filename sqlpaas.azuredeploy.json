@@ -1,6 +1,6 @@
 {
   "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
-  "contentVersion": "4.1.7.0",
+  "contentVersion": "4.1.8.0",
   "parameters": {
     "clusterName": {
       "type": "string",
@@ -23,7 +23,7 @@
   },
   "variables": {
     "sqlServerName": "[parameters('clusterName')]",
-    "script_version": "4.1.7.0"
+    "script_version": "4.1.8.0"
   },
   "resources": [
     {

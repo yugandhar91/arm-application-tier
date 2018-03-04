@@ -44,7 +44,7 @@ Configuration Provisioner
       Script BatFile
       {
         SetScript = {
-          (ConvertTo-Json $app_json) | Set-Content -Path "c:\chef\hash\app.json"  -Encoding UTF8 -Force
+          Set-Content -Value (ConvertTo-Json $app_json) -Path "c:\chef\hash\app.json"  -Encoding UTF8 -Force
         }
         TestScript = {
           if(-not (Test-Path "c:\chef\hash\app.json"))

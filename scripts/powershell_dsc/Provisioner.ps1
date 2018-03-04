@@ -33,6 +33,7 @@ Configuration Provisioner
       {
         Type = "Directory"
         Ensure = "Present"
+        Recurse = $true
         DestinationPath = "c:\chef\hash"
       }
       

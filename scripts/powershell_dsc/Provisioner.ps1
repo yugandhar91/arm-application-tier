@@ -41,18 +41,23 @@ Configuration Provisioner
         DestinationPath = "c:\chef\hash"
       }
       
+      $app_json_contents = "{ `"role_id`"=`"$RoleID`", `"secret_id`"=`"$SecretID`" }"
+      $SetScript = @"
+        `$app_json = "$app_json_contents"
+        Set-Content -Value `$app_json -Path "c:\chef\hash\app.json"  -Encoding UTF8 -Force
+"@
+      $TestScript = @"
+        `$app_json = "$app_json_contents"
+        if(-not (Test-Path "c:\chef\hash\app.json"))
+        {
+          return $false
+        }
+        return (Get-content "c:\chef\hash\app.json") -eq "$app_json_contents"
+"@
       Script BatFile
       {
-        SetScript = {
-          Set-Content -Value ((ConvertTo-Json $app_json) -join "`n") -Path "c:\chef\hash\app.json"  -Encoding UTF8 -Force
-        }
-        TestScript = {
-          if(-not (Test-Path "c:\chef\hash\app.json"))
-          {
-            return $false
-          }
-          return ((Get-content "c:\chef\hash\app.json") -join "`n") -eq (ConvertTo-Json $app_json)
-        }
+        SetScript = [Scriptblock]::Create($SetScript)
+        TestScript = [Scriptblock]::Create($TestScript)
         GetScript = { @{BatFileExists = (Test-Path "c:\chef\hash\app.json" )} }
       }
 

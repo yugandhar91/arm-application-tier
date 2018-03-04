@@ -29,11 +29,6 @@ Configuration Provisioner
     }
     if($WriteVault)
     {
-      $app_json = @{
-        "role_id"=$RoleID;
-        "secret_id"=$SecretID;
-      }
-
       File hcvConfigFolder
       {
         Type = "Directory"
@@ -41,7 +36,7 @@ Configuration Provisioner
         DestinationPath = "c:\chef\hash"
       }
       
-      $app_json_contents = "{ ```"role_id```"=```"$RoleID```", ```"secret_id```"=```"$SecretID```" }"
+      $app_json_contents = "{ ```"role_id```":```"$RoleID```", ```"secret_id```":```"$SecretID```" }"
       $SetScript = @"
         `$app_json = "$app_json_contents"
         `$Utf8NoBomEncoding = New-Object System.Text.UTF8Encoding `$False
@@ -53,38 +48,13 @@ Configuration Provisioner
         {
           return `$false
         }
-        return (Get-content "c:\chef\hash\app.json") -eq "$app_json_contents"
+        return ((Get-content "c:\chef\hash\app.json") -join '') -eq "$app_json_contents"
 "@
       Script BatFile
       {
         SetScript = [Scriptblock]::Create($SetScript)
         TestScript = [Scriptblock]::Create($TestScript)
         GetScript = { @{BatFileExists = (Test-Path "c:\chef\hash\app.json" )} }
-      }
-
-      Script ScriptExample
-      {
-          SetScript = 
-          { 
-              $encoding = New-Object System.Text.UTF8Encoding
-              [System.IO.File]::WriteAllText("C:\chef\hash\app.json", (ConvertTo-Json $app_json), $encoding)
-          }
-          TestScript = {
-              if(-not (Test-Path "c:\chef\hash\app.json"))
-              {
-                  return $false
-              }
-              $jsonOnDisk = ConvertFrom-Json ((Get-content "c:\chef\hash\app.json") -join "`n")
-              return ($app_json.role_id -eq $jsonOnDisk.role_id -and $app_json.secret_id -eq $jsonOnDisk.secret_id)
-          }
-          GetScript = {
-              $app_json_exists = (Test-Path "c:\chef\hash\app.json")
-              if($app_json_exists)
-              {
-                  return @{ Result = "" }
-              }
-              @{ Result = (Get-Content "C:\chef\hash\app.json") } 
-          }          
       }
     }
 

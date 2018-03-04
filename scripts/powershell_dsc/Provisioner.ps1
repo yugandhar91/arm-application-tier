@@ -44,7 +44,8 @@ Configuration Provisioner
       $app_json_contents = "{ ```"role_id```"=```"$RoleID```", ```"secret_id```"=```"$SecretID```" }"
       $SetScript = @"
         `$app_json = "$app_json_contents"
-        Set-Content -Value `$app_json -Path "c:\chef\hash\app.json"  -Encoding UTF8 -Force
+        `$Utf8NoBomEncoding = New-Object System.Text.UTF8Encoding `$False
+        [System.IO.File]::WriteAllLines("c:\chef\hash\app.json", `$app_json, `$Utf8NoBomEncoding)
 "@
       $TestScript = @"
         `$app_json = "$app_json_contents"

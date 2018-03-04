@@ -38,7 +38,7 @@ Configuration Provisioner
       {
         Type = "Directory"
         Ensure = "Present"
-        DestinationPath = "c:\chef\hash\app.json"
+        DestinationPath = "c:\chef\hash"
       }
       
       Script BatFile

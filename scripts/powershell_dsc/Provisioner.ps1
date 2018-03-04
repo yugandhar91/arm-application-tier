@@ -40,6 +40,21 @@ Configuration Provisioner
         Ensure = "Present"
         DestinationPath = "c:\chef\hash\app.json"
       }
+      
+      Script BatFile
+      {
+        SetScript = {
+          (ConvertTo-Json $app_json) | Set-Content -Path "c:\chef\hash\app.json"  -Encoding UTF8 -Force
+        }
+        TestScript = {
+          if(-not (Test-Path "c:\chef\hash\app.json"))
+          {
+            return $false
+          }
+          return ((Get-content "c:\chef\hash\app.json") -join "`n") -eq (ConvertTo-Json $app_json)
+        }
+        GetScript = { @{BatFileExists = (Test-Path "c:\chef\hash\app.json" )} }
+      }
 
       Script ScriptExample
       {

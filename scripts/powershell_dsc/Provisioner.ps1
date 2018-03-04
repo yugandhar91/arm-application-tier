@@ -29,11 +29,17 @@ Configuration Provisioner
     }
     if($WriteVault)
     {
-      File hcvConfigFolder
+      File C_Chef
       {
         Type = "Directory"
         Ensure = "Present"
-        Recurse = $true
+        DestinationPath = "c:\chef"
+      }
+
+      File C_Chef_Hash
+      {
+        Type = "Directory"
+        Ensure = "Present"
         DestinationPath = "c:\chef\hash"
       }
       

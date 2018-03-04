@@ -1,6 +1,6 @@
 {
   "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
-  "contentVersion": "4.1.6.0",
+  "contentVersion": "4.1.7.0",
   "parameters": {
     "adminUserName": {
       "type": "string",
@@ -53,8 +53,7 @@
       "defaultValue": {
         "virtualNetwork": {
           "name": "defaultVNet",
-          "resourceGroup": "SecNet",
-          "subscriptionID": null
+          "resourceGroup": "SecNet"
         },
         "subnet": {
           "name": "defaultWeb",
@@ -152,11 +151,10 @@
     }
   },
   "variables": {
-    "script_version": "4.1.6.0",
+    "script_version": "4.1.7.0",
     "namingInfix": "[toLower(concat(parameters('product').name, parameters('product').tier_name))]",
     "avSetName": "[concat(variables('namingInfix'),'avset')]",
-    "vnetSubscriptionId": "[if(empty(parameters('network').virtualNetwork.subscriptionId), subscription().subscriptionId, parameters('network').virtualNetwork.subscriptionId)]",
-    "vnetID": "[resourceId(variables('vnetSubscriptionId'), parameters('network').virtualNetwork.resourceGroup, 'Microsoft.Network/virtualNetworks', parameters('network').virtualNetwork.name)]",
+    "vnetID": "[resourceId(parameters('network').virtualNetwork.resourceGroup, 'Microsoft.Network/virtualNetworks', parameters('network').virtualNetwork.name)]",
     "lbName": "[concat(variables('namingInfix'),'loadbalancer')]",
     "lbBackendPool": "BackendPool",
     "lbIPScope": "[toLower(parameters('network').loadbalancing.ipType)]",
@@ -354,7 +352,7 @@
         "mode": "Incremental",
         "templateLink": {
           "uri": "[variables('serverTemplate')]",
-          "contentVersion": "4.1.6.0"
+          "contentVersion": "4.1.7.0"
         },
         "parameters": {
           "adminUserName": {

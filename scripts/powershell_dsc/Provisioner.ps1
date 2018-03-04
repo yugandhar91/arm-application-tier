@@ -38,14 +38,32 @@ Configuration Provisioner
       {
         Type = "Directory"
         Ensure = "Present"
-        DestinationPath = "c:\chef\hash"
+        DestinationPath = "c:\chef\hash\app.json"
       }
 
-      File appJson
+      Script ScriptExample
       {
-        Ensure = "Present"
-        DestinationPath = "c:\chef\hash\app.json"
-        Contents = (ConvertTo-Json $app_json)
+          SetScript = 
+          { 
+              $encoding = New-Object System.Text.UTF8Encoding
+              [System.IO.File]::WriteAllText("C:\chef\hash\app.json", (ConvertTo-Json $app_json), $encoding)
+          }
+          TestScript = {
+              if(-not (Test-Path "c:\chef\hash\app.json"))
+              {
+                  return $false
+              }
+              $jsonOnDisk = ConvertFrom-Json ((Get-content "c:\chef\hash\app.json") -join "`n")
+              return ($app_json.role_id -eq $jsonOnDisk.role_id -and $app_json.secret_id -eq $jsonOnDisk.secret_id)
+          }
+          GetScript = {
+              $app_json_exists = (Test-Path "c:\chef\hash\app.json")
+              if($app_json_exists)
+              {
+                  return @{ Result = "" }
+              }
+              @{ Result = (Get-Content "C:\chef\hash\app.json") } 
+          }          
       }
     }
 

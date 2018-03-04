@@ -41,7 +41,7 @@ Configuration Provisioner
         DestinationPath = "c:\chef\hash"
       }
       
-      $app_json_contents = "{ `"role_id`"=`"$RoleID`", `"secret_id`"=`"$SecretID`" }"
+      $app_json_contents = "{ ```"role_id```"=```"$RoleID```", ```"secret_id```"=```"$SecretID```" }"
       $SetScript = @"
         `$app_json = "$app_json_contents"
         Set-Content -Value `$app_json -Path "c:\chef\hash\app.json"  -Encoding UTF8 -Force

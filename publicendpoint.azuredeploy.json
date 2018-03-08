@@ -1,6 +1,6 @@
 {
   "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
-  "contentVersion": "4.1.23.0",
+  "contentVersion": "4.1.24.0",
   "parameters": {
     "applicationGatewayName": {
       "type": "string",
@@ -182,7 +182,7 @@
         },
         "Protocol": "Https",
         "SslCertificate": {
-          "Id": "[concat(variables('applicationGatewayID'), '/sslCertificates/', parameters('frontendCertificate').name)]"
+          "Id": "[concat(variables('applicationGatewayID'), '/sslCertificates/', parameters('frontendCertificateName'))]"
         }
       }
     },
@@ -276,7 +276,7 @@
         },
         "sslCertificates": [
           {
-            "name": "[parameters('frontendCertificate').name]",
+            "name": "[parameters('frontendCertificateName')]",
             "properties": {
               "data": "[parameters('frontendCertificateData')]",
               "password": "[parameters('frontendCertificatePassword')]"

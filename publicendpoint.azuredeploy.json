@@ -69,17 +69,21 @@
     },
     "disabledOWASPRuleGroups": {
       "type": "object",
-      "defaultValue": [],
+      "defaultValue": {
+        "rules": []
+      },
       "metadata": {
         "description": "A list of disabled OWASP rule groups."
       }
     },
     "backendAddresses": {
       "type": "object",
-      "defaultValue": [
-        "127.0.0.1",
-        "127.0.0.2"
-      ],
+      "defaultValue": {
+        "addresses": [
+          "127.0.0.1",
+          "127.0.0.2"
+        ]
+      },
       "metadata": {
         "description": "A list of back-end servers to send traffic to. Can be a load balancer VIP."
       }
@@ -307,7 +311,7 @@
           {
             "name": "DefaultBackendAddressPool",
             "properties": {
-              "BackendAddresses": "[parameters('backendAddresses')]"
+              "BackendAddresses": "[parameters('backendAddresses').addresses]"
             }
           }
         ],
@@ -319,7 +323,7 @@
           "firewallMode": "[parameters('wafMode')]",
           "ruleSetType": "OWASP",
           "ruleSetVersion": "3.0",
-          "disabledRuleGroups": "[parameters('disabledOWASPRuleGroups')]"
+          "disabledRuleGroups": "[parameters('disabledOWASPRuleGroups').rules]"
         }
       }
     }

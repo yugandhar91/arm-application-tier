@@ -120,7 +120,7 @@
   },
   "variables": {
     "publicIPName": "[concat(parameters('applicationGatewayName'), '-PublicIP')]",
-    "applicationGatewayID": "[resourceId('Microsoft.Network/applicationGateways',variables('applicationGatewayName'))]",
+    "applicationGatewayID": "[resourceId('Microsoft.Network/applicationGateways',parameters('applicationGatewayName'))]",
     "vnetId": "[resourceId(parameters('network').vNet.resourceGroup, 'Microsoft.Network/virtualNetworks', parameters('network').vNet.name)]",
     "subnetRef": "[concat(variables('vnetId'), '/subnets/', parameters('network').vNet.subnetName)]",
     "numPorts": "[length(parameters('ports'))]",
@@ -263,7 +263,7 @@
     },
     {
       "apiVersion": "2017-06-01",
-      "name": "[variables('applicationGatewayName')]",
+      "name": "[parameters('applicationGatewayName')]",
       "type": "Microsoft.Network/applicationGateways",
       "location": "[resourceGroup().location]",
       "dependsOn": [

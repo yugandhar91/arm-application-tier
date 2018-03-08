@@ -137,11 +137,11 @@
     },
     "frontendPorts": {
       "false": [
-        "variables('httpsFrontEndPort')"
+        "[variables('httpsFrontEndPort')]"
       ],
       "true": [
-        "variables('httpsFrontEndPort')",
-        "variables('httpFrontEndPort')"
+        "[variables('httpsFrontEndPort')]",
+        "[variables('httpFrontEndPort')]"
       ]
     },
     "frontendPortConfig": "[variables('frontendPorts')[string(parameters('ports').http.enabled)]]",
@@ -163,11 +163,11 @@
     },
     "backendPorts": {
       "false": [
-        "variables('httpsBackEndPort')"
+        "[variables('httpsBackEndPort')]"
       ],
       "true": [
-        "variables('httpsBackEndPort')",
-        "variables('httpBackEndPort')"
+        "[variables('httpsBackEndPort')]",
+        "[variables('httpBackEndPort')]"
       ]
     },
     "backendPortConfig": "[variables('backendPorts')[string(parameters('ports').http.enabled)]]",
@@ -201,11 +201,11 @@
     },
     "httpListeners": {
       "false": [
-        "variables('httpsListener')"
+        "[variables('httpsListener')]"
       ],
       "true": [
-        "variables('httpsListener')",
-        "variables('httpListener')"
+        "[variables('httpsListener')]",
+        "[variables('httpListener')]"
       ]
     },
     "httpListenerConfig": "[variables('httpListeners')[string(parameters('ports').http.enabled)]]",
@@ -241,11 +241,11 @@
     },
     "routingRules": {
       "false": [
-        "variables('httpsRoutingRule')"
+        "[variables('httpsRoutingRule')]"
       ],
       "true": [
-        "variables('httpsRoutingRule')",
-        "variables('httpRoutingRule')"
+        "[variables('httpsRoutingRule')]",
+        "[variables('httpRoutingRule')]"
       ]
     },
     "routingRule": "[variables('routingRules')[string(parameters('ports').http.enabled)]]"

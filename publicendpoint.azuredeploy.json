@@ -144,7 +144,7 @@
         "variables('httpFrontEndPort')"
       ]
     },
-    "frontendPortConfig": "[variables('frontendPorts')[parameters('ports').http.enabled]]",
+    "frontendPortConfig": "[variables('frontendPorts')[string(parameters('ports').http.enabled)]]",
     "httpsBackendPort": {
       "name":  "[concat('BackendPort-HTTPS-', parameters('ports').https.backEndPort)]",
       "properties": {
@@ -170,7 +170,7 @@
         "variables('httpBackEndPort')"
       ]
     },
-    "backendPortConfig": "[variables('backendPorts')[parameters('ports').http.enabled]]",
+    "backendPortConfig": "[variables('backendPorts')[string(parameters('ports').http.enabled)]]",
     "httpsListener": {
       "name": "HttpsListener",
       "properties": {
@@ -208,7 +208,7 @@
         "variables('httpListener')"
       ]
     },
-    "httpListenerConfig": "[variables('httpListeners')[parameters('ports').http.enabled]]",
+    "httpListenerConfig": "[variables('httpListeners')[string(parameters('ports').http.enabled)]]",
     "httpsRoutingRule": {
       "Name": "HTTPSRoute",
       "properties": {
@@ -248,7 +248,7 @@
         "variables('httpRoutingRule')"
       ]
     },
-    "routingRule": "[variables('routingRules')[parameters('ports').http.enabled]]"
+    "routingRule": "[variables('routingRules')[string(parameters('ports').http.enabled)]]"
   },
   "resources": [
     {

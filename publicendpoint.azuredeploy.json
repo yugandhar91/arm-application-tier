@@ -123,7 +123,6 @@
     "applicationGatewayID": "[resourceId('Microsoft.Network/applicationGateways', parameters('applicationGatewayName'))]",
     "vnetId": "[resourceId(parameters('network').vNet.resourceGroup, 'Microsoft.Network/virtualNetworks', parameters('network').vNet.name)]",
     "subnetRef": "[concat(variables('vnetId'), '/subnets/', parameters('network').vNet.subnetName)]",
-    "numPorts": "[length(parameters('ports'))]",
     "httpsFrontEndPort": {
       "name": "[concat('FrontEndPort-HTTPS-', parameters('ports').https.frontEndPort)]",
       "properties": {

@@ -26,6 +26,13 @@
         "description": "pfx certificate password"
       }
     },
+    "backendCertificatePublicKey": {
+      "type": "securestring",
+      "defaultValue": "",
+      "metadata": {
+        "description": "Base64 encoded certificate .pfx file containing the public key of the back-end https service"
+      }
+    },
     "applicationGatewaySize": {
       "type": "string",
       "allowedValues": [
@@ -171,6 +178,18 @@
       ]
     },
     "backendPortConfig": "[variables('backendPorts')[string(parameters('ports').http.enabled)]]",
+    "authenticationCertificates": {
+      "false": [
+        {
+          "properties": {
+            "data": "[parameters('backendCertificatePublicKey')]"
+          },
+          "name": "appGatewayBackendCert"
+        }
+      ],
+      "true": []
+    },
+    "authenticationCertificateConfig": "[variables('authenticationCertificates')[string(empty(parameters('backendCertificatePublicKey')))]]",
     "httpsListener": {
       "name": "HttpsListener",
       "properties": {
@@ -293,8 +312,7 @@
             }
           }
         ],
-        "authenticationCertificates": [
-        ],
+        "authenticationCertificates": "[variables('authenticationCertificateConfig')]",
         "frontendIPConfigurations": [
           {
             "name": "appGatewayFrontendIP",

@@ -157,7 +157,12 @@
       "properties": {
         "Port": "[parameters('ports').https.backEndPort]",
         "Protocol": "https",
-        "CookieBasedAffinity": "[parameters('ports').https.cookieAffinity]"
+        "CookieBasedAffinity": "[parameters('ports').https.cookieAffinity]",
+        "AuthenticationCertificates": [
+          {
+            "Id": "[concat(variables('applicationGatewayID'), '/authenticationCertificates/appGatewayBackendCert')]"
+          }
+        ]
       }
     },
     "httpBackendPort": {

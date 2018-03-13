@@ -114,7 +114,7 @@
                 "cookieAffinity": "Disabled"
             }
         },
-        "omsSubscription": {
+        "omsSubscriptionID": {
             "type": "string"
         },
         "omsResourceGroup": {

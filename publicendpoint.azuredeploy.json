@@ -326,7 +326,7 @@
                         "[resourceId('Microsoft.Network/applicationGateways', parameters('applicationGatewayName'))]"
                     ],
                     "properties": {
-                        "workspaceId": "[reourceId(parameters('omsSubscriptionID'), parameters('omsResourceGroup'), 'Microsoft.OperationalInsights/workspaces', parameters('omsWorkspaceName'))]",
+                        "workspaceId": "[resourceId(parameters('omsSubscriptionID'), parameters('omsResourceGroup'), 'Microsoft.OperationalInsights/workspaces', parameters('omsWorkspaceName'))]",
                         "logs": [
                             {
                                 "category": "ApplicationGatewayAccessLog",

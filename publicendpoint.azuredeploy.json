@@ -114,11 +114,14 @@
                 "cookieAffinity": "Disabled"
             }
         },
-        "OMSWorkspaceId": {
-          "type": "string",
-          "metadata": {
-            "description": "the workspace id to store application gateway analytics data."
-          }
+        "omsSubscription": {
+          "type": "string"
+        },
+        "omsResourceGroup": {
+          "type": "string"
+        },
+        "omsWorkspaceName": {
+          "type": "string"
         }
     },
     "variables": {
@@ -323,7 +326,7 @@
                         "[resourceId('Microsoft.Network/applicationGateways', parameters('applicationGatewayName'))]"
                     ],
                     "properties": {
-                        "workspaceId": "[parameters('OMSWorkspaceId')]",
+                        "workspaceId": "[reourceId(parameters('omsSubscriptionID'), parameters('omsResourceGroup'), 'Microsoft.OperationalInsights/workspaces', parameters('omsWorkspaceName'))]",
                         "logs": [
                             {
                                 "category": "ApplicationGatewayAccessLog",

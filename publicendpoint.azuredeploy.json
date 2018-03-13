@@ -115,13 +115,13 @@
             }
         },
         "omsSubscription": {
-          "type": "string"
+            "type": "string"
         },
         "omsResourceGroup": {
-          "type": "string"
+            "type": "string"
         },
         "omsWorkspaceName": {
-          "type": "string"
+            "type": "string"
         }
     },
     "variables": {
@@ -157,7 +157,7 @@
             "properties": {
                 "publicIPAllocationMethod": "Dynamic",
                 "dnsSettings": {
-                  "domainNameLabel": "[parameters('network').dnsLabel]"
+                    "domainNameLabel": "[parameters('network').dnsLabel]"
                 }
             }
         },

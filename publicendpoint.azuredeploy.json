@@ -234,7 +234,7 @@
             "properties": {
               "redirectType": "Permanent",
               "targetListener": {
-                "id": "[concat(variables('applicationGatewayID'), '/httpListeners/HttpListener')]"
+                "id": "[concat(variables('applicationGatewayID'), '/httpListeners/HttpsListener')]"
               }
             }
           }

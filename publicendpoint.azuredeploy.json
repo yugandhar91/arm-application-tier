@@ -1,312 +1,349 @@
 {
-  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
-  "contentVersion": "4.1.26.0",
-  "parameters": {
-    "applicationGatewayName": {
-      "type": "string",
-      "metadata": {
-        "description": "Application Gateway name"
-      }
-    },
-    "frontendCertificateName": {
-      "type": "securestring",
-      "metadata": {
-        "description": "certificate name"
-      }
-    },
-    "frontendCertificateData": {
-      "type": "securestring",
-      "metadata": {
-        "description": "Base64 enoded certificate .pfx file"
-      }
-    },
-    "frontendCertificatePassword": {
-      "type": "securestring",
-      "metadata": {
-        "description": "pfx certificate password"
-      }
-    },
-    "backendCertificatePublicKey": {
-      "type": "securestring",
-      "defaultValue": "",
-      "metadata": {
-        "description": "Base64 encoded certificate .pfx file containing the public key of the back-end https service"
-      }
-    },
-    "applicationGatewaySize": {
-      "type": "string",
-      "allowedValues": [
-        "WAF_Medium",
-        "WAF_Large"
-      ],
-      "defaultValue": "WAF_Medium",
-      "metadata": {
-        "description": "Application Gateway size"
-      }
-    },
-    "capacity": {
-      "type": "int",
-      "allowedValues": [
-        1,
-        2,
-        3,
-        4,
-        5,
-        6,
-        7,
-        8,
-        9,
-        10
-      ],
-      "defaultValue": 2,
-      "metadata": {
-        "description": "Number of instances"
-      }
-    },
-    "wafMode": {
-      "type": "string",
-      "allowedValues": [
-        "Detection",
-        "Prevention"
-      ],
-      "defaultValue": "Prevention",
-      "metadata": {
-        "description": "WAF Mode"
-      }
-    },
-    "disabledOWASPRuleGroups": {
-      "type": "object",
-      "defaultValue": {
-        "rules": []
-      },
-      "metadata": {
-        "description": "A list of disabled OWASP rule groups."
-      }
-    },
-    "backendAddresses": {
-      "type": "object",
-      "defaultValue": {
-        "addresses": [
-          "127.0.0.1",
-          "127.0.0.2"
-        ]
-      },
-      "metadata": {
-        "description": "A list of back-end servers to send traffic to. Can be a load balancer VIP."
-      }
-    },
-    "network": {
-      "type": "object",
-      "defaultValue": {
-        "vNet": {
-          "resourceGroup": "Not_Provided",
-          "name": "Not_Provided",
-          "subnetName": "Not_Provided"
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+    "contentVersion": "4.1.26.0",
+    "parameters": {
+        "applicationGatewayName": {
+            "type": "string",
+            "metadata": {
+                "description": "Application Gateway name"
+            }
         },
-        "publicIP": {
-          "persistence": "Static"
+        "frontendCertificateName": {
+            "type": "securestring",
+            "metadata": {
+                "description": "certificate name"
+            }
+        },
+        "frontendCertificateData": {
+            "type": "securestring",
+            "metadata": {
+                "description": "Base64 enoded certificate .pfx file"
+            }
+        },
+        "frontendCertificatePassword": {
+            "type": "securestring",
+            "metadata": {
+                "description": "pfx certificate password"
+            }
+        },
+        "backendCertificatePublicKey": {
+            "type": "securestring",
+            "defaultValue": "",
+            "metadata": {
+                "description": "Base64 encoded certificate .pfx file containing the public key of the back-end https service"
+            }
+        },
+        "applicationGatewaySize": {
+            "type": "string",
+            "allowedValues": [
+                "WAF_Medium",
+                "WAF_Large"
+            ],
+            "defaultValue": "WAF_Medium",
+            "metadata": {
+                "description": "Application Gateway size"
+            }
+        },
+        "capacity": {
+            "type": "int",
+            "allowedValues": [
+                1,
+                2,
+                3,
+                4,
+                5,
+                6,
+                7,
+                8,
+                9,
+                10
+            ],
+            "defaultValue": 2,
+            "metadata": {
+                "description": "Number of instances"
+            }
+        },
+        "wafMode": {
+            "type": "string",
+            "allowedValues": [
+                "Detection",
+                "Prevention"
+            ],
+            "defaultValue": "Prevention",
+            "metadata": {
+                "description": "WAF Mode"
+            }
+        },
+        "disabledOWASPRuleGroups": {
+            "type": "object",
+            "defaultValue": {
+                "rules": []
+            },
+            "metadata": {
+                "description": "A list of disabled OWASP rule groups."
+            }
+        },
+        "backendAddresses": {
+            "type": "object",
+            "defaultValue": {
+                "addresses": [
+                    "127.0.0.1",
+                    "127.0.0.2"
+                ]
+            },
+            "metadata": {
+                "description": "A list of back-end servers to send traffic to. Can be a load balancer VIP."
+            }
+        },
+        "network": {
+            "type": "object",
+            "defaultValue": {
+                "vNet": {
+                    "resourceGroup": "Not_Provided",
+                    "name": "Not_Provided",
+                    "subnetName": "Not_Provided"
+                },
+                "dnsLabel": null
+            }
+        },
+        "backendHttpSettings": {
+            "type": "object",
+            "defaultValue": {
+                "backEndPort": 443,
+                "https": true,
+                "cookieAffinity": "Disabled"
+            }
+        },
+        "OMSWorkspaceId": {
+          "type": "string",
+          "metadata": {
+            "description": "the workspace id to store application gateway analytics data."
+          }
         }
-      }
     },
-    "backendHttpSettings": {
-      "type": "object",
-      "defaultValue": {
-        "backEndPort": 443,
-        "https": true,
-        "cookieAffinity": "Disabled"
-      }
-    }
-  },
-  "variables": {
-    "emptyList": [],
-    "publicIPName": "[concat(parameters('applicationGatewayName'), '-PublicIP')]",
-    "applicationGatewayID": "[resourceId('Microsoft.Network/applicationGateways', parameters('applicationGatewayName'))]",
-    "vnetId": "[resourceId(parameters('network').vNet.resourceGroup, 'Microsoft.Network/virtualNetworks', parameters('network').vNet.name)]",
-    "subnetRef": "[concat(variables('vnetId'), '/subnets/', parameters('network').vNet.subnetName)]",
-    "authenticationCertificate": [
-      {
-        "Id": "[concat(variables('applicationGatewayID'), '/authenticationCertificates/appGatewayBackendCert')]"
-      }
-    ],
-    "authenticationCertificates": {
-      "false": [
+    "variables": {
+        "emptyList": [],
+        "publicIPName": "[concat(parameters('applicationGatewayName'), '-PublicIP')]",
+        "applicationGatewayID": "[resourceId('Microsoft.Network/applicationGateways', parameters('applicationGatewayName'))]",
+        "vnetId": "[resourceId(parameters('network').vNet.resourceGroup, 'Microsoft.Network/virtualNetworks', parameters('network').vNet.name)]",
+        "subnetRef": "[concat(variables('vnetId'), '/subnets/', parameters('network').vNet.subnetName)]",
+        "authenticationCertificate": [
+            {
+                "Id": "[concat(variables('applicationGatewayID'), '/authenticationCertificates/appGatewayBackendCert')]"
+            }
+        ],
+        "authenticationCertificates": {
+            "false": [
+                {
+                    "properties": {
+                        "data": "[parameters('backendCertificatePublicKey')]"
+                    },
+                    "name": "appGatewayBackendCert"
+                }
+            ],
+            "true": []
+        },
+        "authenticationCertificateConfig": "[variables('authenticationCertificates')[string(empty(parameters('backendCertificatePublicKey')))]]"
+    },
+    "resources": [
         {
-          "properties": {
-            "data": "[parameters('backendCertificatePublicKey')]"
-          },
-          "name": "appGatewayBackendCert"
-        }
-      ],
-      "true": []
-    },
-    "authenticationCertificateConfig": "[variables('authenticationCertificates')[string(empty(parameters('backendCertificatePublicKey')))]]"
-  },
-  "resources": [
-    {
-      "apiVersion": "2015-05-01-preview",
-      "type": "Microsoft.Network/publicIPAddresses",
-      "name": "[variables('publicIPName')]",
-      "location": "[resourceGroup().location]",
-      "properties": {
-        "publicIPAllocationMethod": "[parameters('network').publicIP.persistence]"
-      }
-    },
-    {
-      "apiVersion": "2017-06-01",
-      "name": "[parameters('applicationGatewayName')]",
-      "type": "Microsoft.Network/applicationGateways",
-      "location": "[resourceGroup().location]",
-      "dependsOn": [
-        "[resourceId('Microsoft.Network/publicIPAddresses', variables('publicIPName'))]"
-      ],
-      "properties": {
-        "sku": {
-          "name": "[parameters('applicationGatewaySize')]",
-          "tier": "WAF",
-          "capacity": "[parameters('capacity')]"
+            "apiVersion": "2015-05-01-preview",
+            "type": "Microsoft.Network/publicIPAddresses",
+            "name": "[variables('publicIPName')]",
+            "location": "[resourceGroup().location]",
+            "properties": {
+                "publicIPAllocationMethod": "Dynamic",
+                "dnsSettings": {
+                  "domainNameLabel": "[parameters('network').dnsLabel]"
+                }
+            }
         },
-        "sslCertificates": [
-          {
-            "name": "[parameters('frontendCertificateName')]",
+        {
+            "apiVersion": "2017-06-01",
+            "name": "[parameters('applicationGatewayName')]",
+            "type": "Microsoft.Network/applicationGateways",
+            "location": "[resourceGroup().location]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/publicIPAddresses', variables('publicIPName'))]"
+            ],
             "properties": {
-              "data": "[parameters('frontendCertificateData')]",
-              "password": "[parameters('frontendCertificatePassword')]"
-            }
-          }
-        ],
-        "gatewayIPConfigurations": [
-          {
-            "name": "[concat(parameters('applicationGatewayName'), '-IP-CONF')]",
-            "properties": {
-              "subnet": {
-                "id": "[variables('subnetRef')]"
-              }
-            }
-          }
-        ],
-        "authenticationCertificates": "[variables('authenticationCertificateConfig')]",
-        "frontendIPConfigurations": [
-          {
-            "name": "appGatewayFrontendIP",
-            "properties": {
-              "PublicIPAddress": {
-                "id": "[resourceId('Microsoft.Network/publicIPAddresses', variables('publicIPName'))]"
-              }
-            }
-          }
-        ],
-        "frontendPorts": [
-          {
-            "name": "FrontEndPort-HTTPS-443",
-            "properties": {
-              "Port": 443
-            }
-          },
-          {
-            "name": "FrontEndPort-HTTP-80",
-            "properties": {
-              "Port": 80
-            }
-          }
-        ],
-        "backendAddressPools": [
-          {
-            "name": "DefaultBackendAddressPool",
-            "properties": {
-              "BackendAddresses": "[parameters('backendAddresses').addresses]"
-            }
-          }
-        ],
-        "backendHttpSettingsCollection": [
-          {
-            "name":  "BackendHttpSetting",
-            "properties": {
-              "Port": "[parameters('backendHttpSettings').backEndPort]",
-              "Protocol": "[if(parameters('backendHttpSettings').https, 'https', 'http')]",
-              "CookieBasedAffinity": "[parameters('backendHttpSettings').cookieAffinity]",
-              "AuthenticationCertificates": "[if(parameters('backendHttpSettings').https, variables('authenticationCertificate'), variables('emptyList'))]"
-            }
-          }
-        ],
-        "redirectConfigurations": [
-          {
-            "Name": "httpsRedirect",
-            "properties": {
-              "redirectType": "Permanent",
-              "targetListener": {
-                "id": "[concat(variables('applicationGatewayID'), '/httpListeners/HttpsListener')]"
-              }
-            }
-          }
-        ],
-        "httpListeners": [
-          {
-            "name": "HttpsListener",
-            "properties": {
-              "FrontendIPConfiguration": {
-                "Id": "[concat(variables('applicationGatewayID'), '/frontendIPConfigurations/appGatewayFrontendIP')]"
-              },
-              "FrontendPort": {
-                "Id": "[concat(variables('applicationGatewayID'), '/frontendPorts/FrontEndPort-HTTPS-443')]"
-              },
-              "Protocol": "Https",
-              "SslCertificate": {
-                "Id": "[concat(variables('applicationGatewayID'), '/sslCertificates/', parameters('frontendCertificateName'))]"
-              }
-            }
-          },
-          {
-            "name": "HttpListener",
-            "properties": {
-              "FrontendIPConfiguration": {
-                "Id": "[concat(variables('applicationGatewayID'), '/frontendIPConfigurations/appGatewayFrontendIP')]"
-              },
-              "FrontendPort": {
-                "Id": "[concat(variables('applicationGatewayID'), '/frontendPorts/FrontEndPort-HTTP-80')]"
-              },
-              "Protocol": "Http",
-              "SslCertificate": null
-            }
-          }
-        ],
-        "requestRoutingRules": [
-          {
-            "Name": "HTTPSRoute",
-            "properties": {
-              "RuleType": "Basic",
-              "httpListener": {
-                "id": "[concat(variables('applicationGatewayID'), '/httpListeners/HttpsListener')]"
-              },
-              "backendAddressPool": {
-                "id": "[concat(variables('applicationGatewayID'), '/backendAddressPools/DefaultBackendAddressPool')]"
-              },
-              "backendHttpSettings": {
-                "id": "[concat(variables('applicationGatewayID'), '/backendHttpSettingsCollection/BackendHttpSetting')]"
-              }
-            }
-          },
-          {
-            "Name": "HTTPRoute",
-            "properties": {
-              "RuleType": "Basic",
-              "httpListener": {
-                "id": "[concat(variables('applicationGatewayID'), '/httpListeners/HttpListener')]"
-              },
-              "redirectConfiguration": {
-                "id": "[concat(variables('applicationGatewayID'), '/redirectConfigurations/httpsRedirect')]"
-              }
-            }
-          }
-        ],
-        "webApplicationFirewallConfiguration": {
-          "enabled": true,
-          "firewallMode": "[parameters('wafMode')]",
-          "ruleSetType": "OWASP",
-          "ruleSetVersion": "3.0",
-          "disabledRuleGroups": "[parameters('disabledOWASPRuleGroups').rules]"
+                "sku": {
+                    "name": "[parameters('applicationGatewaySize')]",
+                    "tier": "WAF",
+                    "capacity": "[parameters('capacity')]"
+                },
+                "sslCertificates": [
+                    {
+                        "name": "[parameters('frontendCertificateName')]",
+                        "properties": {
+                            "data": "[parameters('frontendCertificateData')]",
+                            "password": "[parameters('frontendCertificatePassword')]"
+                        }
+                    }
+                ],
+                "gatewayIPConfigurations": [
+                    {
+                        "name": "[concat(parameters('applicationGatewayName'), '-IP-CONF')]",
+                        "properties": {
+                            "subnet": {
+                                "id": "[variables('subnetRef')]"
+                            }
+                        }
+                    }
+                ],
+                "authenticationCertificates": "[variables('authenticationCertificateConfig')]",
+                "frontendIPConfigurations": [
+                    {
+                        "name": "appGatewayFrontendIP",
+                        "properties": {
+                            "PublicIPAddress": {
+                                "id": "[resourceId('Microsoft.Network/publicIPAddresses', variables('publicIPName'))]"
+                            }
+                        }
+                    }
+                ],
+                "frontendPorts": [
+                    {
+                        "name": "FrontEndPort-HTTPS-443",
+                        "properties": {
+                            "Port": 443
+                        }
+                    },
+                    {
+                        "name": "FrontEndPort-HTTP-80",
+                        "properties": {
+                            "Port": 80
+                        }
+                    }
+                ],
+                "backendAddressPools": [
+                    {
+                        "name": "DefaultBackendAddressPool",
+                        "properties": {
+                            "BackendAddresses": "[parameters('backendAddresses').addresses]"
+                        }
+                    }
+                ],
+                "backendHttpSettingsCollection": [
+                    {
+                        "name": "BackendHttpSetting",
+                        "properties": {
+                            "Port": "[parameters('backendHttpSettings').backEndPort]",
+                            "Protocol": "[if(parameters('backendHttpSettings').https, 'https', 'http')]",
+                            "CookieBasedAffinity": "[parameters('backendHttpSettings').cookieAffinity]",
+                            "AuthenticationCertificates": "[if(parameters('backendHttpSettings').https, variables('authenticationCertificate'), variables('emptyList'))]"
+                        }
+                    }
+                ],
+                "redirectConfigurations": [
+                    {
+                        "Name": "httpsRedirect",
+                        "properties": {
+                            "redirectType": "Permanent",
+                            "targetListener": {
+                                "id": "[concat(variables('applicationGatewayID'), '/httpListeners/HttpsListener')]"
+                            }
+                        }
+                    }
+                ],
+                "httpListeners": [
+                    {
+                        "name": "HttpsListener",
+                        "properties": {
+                            "FrontendIPConfiguration": {
+                                "Id": "[concat(variables('applicationGatewayID'), '/frontendIPConfigurations/appGatewayFrontendIP')]"
+                            },
+                            "FrontendPort": {
+                                "Id": "[concat(variables('applicationGatewayID'), '/frontendPorts/FrontEndPort-HTTPS-443')]"
+                            },
+                            "Protocol": "Https",
+                            "SslCertificate": {
+                                "Id": "[concat(variables('applicationGatewayID'), '/sslCertificates/', parameters('frontendCertificateName'))]"
+                            }
+                        }
+                    },
+                    {
+                        "name": "HttpListener",
+                        "properties": {
+                            "FrontendIPConfiguration": {
+                                "Id": "[concat(variables('applicationGatewayID'), '/frontendIPConfigurations/appGatewayFrontendIP')]"
+                            },
+                            "FrontendPort": {
+                                "Id": "[concat(variables('applicationGatewayID'), '/frontendPorts/FrontEndPort-HTTP-80')]"
+                            },
+                            "Protocol": "Http",
+                            "SslCertificate": null
+                        }
+                    }
+                ],
+                "requestRoutingRules": [
+                    {
+                        "Name": "HTTPSRoute",
+                        "properties": {
+                            "RuleType": "Basic",
+                            "httpListener": {
+                                "id": "[concat(variables('applicationGatewayID'), '/httpListeners/HttpsListener')]"
+                            },
+                            "backendAddressPool": {
+                                "id": "[concat(variables('applicationGatewayID'), '/backendAddressPools/DefaultBackendAddressPool')]"
+                            },
+                            "backendHttpSettings": {
+                                "id": "[concat(variables('applicationGatewayID'), '/backendHttpSettingsCollection/BackendHttpSetting')]"
+                            }
+                        }
+                    },
+                    {
+                        "Name": "HTTPRoute",
+                        "properties": {
+                            "RuleType": "Basic",
+                            "httpListener": {
+                                "id": "[concat(variables('applicationGatewayID'), '/httpListeners/HttpListener')]"
+                            },
+                            "redirectConfiguration": {
+                                "id": "[concat(variables('applicationGatewayID'), '/redirectConfigurations/httpsRedirect')]"
+                            }
+                        }
+                    }
+                ],
+                "webApplicationFirewallConfiguration": {
+                    "enabled": true,
+                    "firewallMode": "[parameters('wafMode')]",
+                    "ruleSetType": "OWASP",
+                    "ruleSetVersion": "3.0",
+                    "disabledRuleGroups": "[parameters('disabledOWASPRuleGroups').rules]"
+                }
+            },
+            "resources": [
+                {
+                    "apiVersion": "2015-07-01",
+                    "type": "providers/diagnosticSettings",
+                    "name": "Microsoft.Insights/service",
+                    "location": "[resourceGroup().location]",
+                    "dependsOn": [
+                        "[resourceId('Microsoft.Network/applicationGateways', parameters('applicationGatewayName'))]"
+                    ],
+                    "properties": {
+                        "workspaceId": "[parameters('OMSWorkspaceId')]",
+                        "logs": [
+                            {
+                                "category": "ApplicationGatewayAccessLog",
+                                "enabled": true
+                            },
+                            {
+                                "category": "ApplicationGatewayPerformanceLog",
+                                "enabled": true
+                            }
+                        ],
+                        "metrics": [
+                            {
+                                "timeGrain": "PT1M",
+                                "enabled": true
+                            }
+                        ]
+                    }
+                }
+            ]
         }
-      }
-    }
-  ],
-  "outputs": {}
+    ],
+    "outputs": {}
 }

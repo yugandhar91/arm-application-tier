@@ -118,6 +118,7 @@
     }
   },
   "variables": {
+    "emptyList": [],
     "publicIPName": "[concat(parameters('applicationGatewayName'), '-PublicIP')]",
     "applicationGatewayID": "[resourceId('Microsoft.Network/applicationGateways', parameters('applicationGatewayName'))]",
     "vnetId": "[resourceId(parameters('network').vNet.resourceGroup, 'Microsoft.Network/virtualNetworks', parameters('network').vNet.name)]",
@@ -223,7 +224,7 @@
               "Port": "[parameters('backendHttpSettings').backEndPort]",
               "Protocol": "[if(parameters('backendHttpSettings').https, 'https', 'http')]",
               "CookieBasedAffinity": "[parameters('backendHttpSettings').cookieAffinity]",
-              "AuthenticationCertificates": "[if(parameters('backendHttpSettings').https, variables('authenticationCertificate'), [])]"
+              "AuthenticationCertificates": "[if(parameters('backendHttpSettings').https, variables('authenticationCertificate'), variables('emptyList')]"
             }
           }
         ],

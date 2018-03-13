@@ -108,20 +108,12 @@
         }
       }
     },
-    "ports": {
+    "backendHttpSettings": {
       "type": "object",
       "defaultValue": {
-        "https": {
-          "frontEndPort": 443,
-          "backEndPort": 443,
-          "cookieAffinity": "Disabled"
-        },
-        "http": {
-          "enabled": true,
-          "frontEndPort": 80,
-          "backEndPort": 80,
-          "cookieAffinity": "Disabled"
-        }
+        "backEndPort": 443,
+        "https": true,
+        "cookieAffinity": "Disabled"
       }
     }
   },
@@ -130,59 +122,11 @@
     "applicationGatewayID": "[resourceId('Microsoft.Network/applicationGateways', parameters('applicationGatewayName'))]",
     "vnetId": "[resourceId(parameters('network').vNet.resourceGroup, 'Microsoft.Network/virtualNetworks', parameters('network').vNet.name)]",
     "subnetRef": "[concat(variables('vnetId'), '/subnets/', parameters('network').vNet.subnetName)]",
-    "httpsFrontEndPort": {
-      "name": "[concat('FrontEndPort-HTTPS-', parameters('ports').https.frontEndPort)]",
-      "properties": {
-        "Port": "[parameters('ports').https.frontEndPort]"
+    "authenticationCertificate": [
+      {
+        "Id": "[concat(variables('applicationGatewayID'), '/authenticationCertificates/appGatewayBackendCert')]"
       }
-    },
-    "httpFrontEndPort": {
-      "name": "[concat('FrontEndPort-HTTP-', parameters('ports').http.frontEndPort)]",
-      "properties": {
-        "Port": "[parameters('ports').http.frontEndPort]"
-      }
-    },
-    "frontendPorts": {
-      "false": [
-        "[variables('httpsFrontEndPort')]"
-      ],
-      "true": [
-        "[variables('httpsFrontEndPort')]",
-        "[variables('httpFrontEndPort')]"
-      ]
-    },
-    "frontendPortConfig": "[variables('frontendPorts')[string(parameters('ports').http.enabled)]]",
-    "httpsBackendPort": {
-      "name":  "[concat('BackendPort-HTTPS-', parameters('ports').https.backEndPort)]",
-      "properties": {
-        "Port": "[parameters('ports').https.backEndPort]",
-        "Protocol": "https",
-        "CookieBasedAffinity": "[parameters('ports').https.cookieAffinity]",
-        "AuthenticationCertificates": [
-          {
-            "Id": "[concat(variables('applicationGatewayID'), '/authenticationCertificates/appGatewayBackendCert')]"
-          }
-        ]
-      }
-    },
-    "httpBackendPort": {
-      "name":  "[concat('BackendPort-HTTP-', parameters('ports').http.backEndPort)]",
-      "properties": {
-        "Port": "[parameters('ports').http.backEndPort]",
-        "Protocol": "http",
-        "CookieBasedAffinity": "[parameters('ports').http.cookieAffinity]"
-      }
-    },
-    "backendPorts": {
-      "false": [
-        "[variables('httpsBackEndPort')]"
-      ],
-      "true": [
-        "[variables('httpsBackEndPort')]",
-        "[variables('httpBackEndPort')]"
-      ]
-    },
-    "backendPortConfig": "[variables('backendPorts')[string(parameters('ports').http.enabled)]]",
+    ],
     "authenticationCertificates": {
       "false": [
         {
@@ -194,85 +138,7 @@
       ],
       "true": []
     },
-    "authenticationCertificateConfig": "[variables('authenticationCertificates')[string(empty(parameters('backendCertificatePublicKey')))]]",
-    "httpsListener": {
-      "name": "HttpsListener",
-      "properties": {
-        "FrontendIPConfiguration": {
-          "Id": "[concat(variables('applicationGatewayID'), '/frontendIPConfigurations/appGatewayFrontendIP')]"
-        },
-        "FrontendPort": {
-          "Id": "[concat(variables('applicationGatewayID'), '/frontendPorts/FrontEndPort-HTTPS-', parameters('ports').https.frontEndPort)]"
-        },
-        "Protocol": "Https",
-        "SslCertificate": {
-          "Id": "[concat(variables('applicationGatewayID'), '/sslCertificates/', parameters('frontendCertificateName'))]"
-        }
-      }
-    },
-    "httpListener": {
-      "name": "HttpListener",
-      "properties": {
-        "FrontendIPConfiguration": {
-          "Id": "[concat(variables('applicationGatewayID'), '/frontendIPConfigurations/appGatewayFrontendIP')]"
-        },
-        "FrontendPort": {
-          "Id": "[concat(variables('applicationGatewayID'), '/frontendPorts/FrontEndPort-HTTP-', parameters('ports').http.frontEndPort)]"
-        },
-        "Protocol": "Http",
-        "SslCertificate": null
-      }
-    },
-    "httpListeners": {
-      "false": [
-        "[variables('httpsListener')]"
-      ],
-      "true": [
-        "[variables('httpsListener')]",
-        "[variables('httpListener')]"
-      ]
-    },
-    "httpListenerConfig": "[variables('httpListeners')[string(parameters('ports').http.enabled)]]",
-    "httpsRoutingRule": {
-      "Name": "HTTPSRoute",
-      "properties": {
-        "RuleType": "Basic",
-        "httpListener": {
-          "id": "[concat(variables('applicationGatewayID'), '/httpListeners/HttpsListener')]"
-        },
-        "backendAddressPool": {
-          "id": "[concat(variables('applicationGatewayID'), '/backendAddressPools/DefaultBackendAddressPool')]"
-        },
-        "backendHttpSettings": {
-          "id": "[concat(variables('applicationGatewayID'), '/backendHttpSettingsCollection/BackendPort-HTTPS-', parameters('ports').https.backEndPort)]"
-        }
-      }
-    },
-    "httpRoutingRule": {
-      "Name": "HTTPRoute",
-      "properties": {
-        "RuleType": "Basic",
-        "httpListener": {
-          "id": "[concat(variables('applicationGatewayID'), '/httpListeners/HttpListener')]"
-        },
-        "backendAddressPool": {
-          "id": "[concat(variables('applicationGatewayID'), '/backendAddressPools/DefaultBackendAddressPool')]"
-        },
-        "backendHttpSettings": {
-          "id": "[concat(variables('applicationGatewayID'), '/backendHttpSettingsCollection/BackendPort-HTTP-', parameters('ports').http.backEndPort)]"
-        }
-      }
-    },
-    "routingRules": {
-      "false": [
-        "[variables('httpsRoutingRule')]"
-      ],
-      "true": [
-        "[variables('httpsRoutingRule')]",
-        "[variables('httpRoutingRule')]"
-      ]
-    },
-    "routingRule": "[variables('routingRules')[string(parameters('ports').http.enabled)]]"
+    "authenticationCertificateConfig": "[variables('authenticationCertificates')[string(empty(parameters('backendCertificatePublicKey')))]]"
   },
   "resources": [
     {
@@ -328,7 +194,20 @@
             }
           }
         ],
-        "frontendPorts": "[variables('frontendPortConfig')]",
+        "frontendPorts": [
+          {
+            "name": "FrontEndPort-HTTPS-443",
+            "properties": {
+              "Port": 443
+            }
+          },
+          {
+            "name": "FrontEndPort-HTTP-80",
+            "properties": {
+              "Port": 80
+            }
+          }
+        ],
         "backendAddressPools": [
           {
             "name": "DefaultBackendAddressPool",
@@ -337,9 +216,87 @@
             }
           }
         ],
-        "backendHttpSettingsCollection": "[variables('backendPortConfig')]",
-        "httpListeners": "[variables('httpListenerConfig')]",
-        "requestRoutingRules": "[variables('routingRule')]",
+        "backendHttpSettingsCollection": [
+          {
+            "name":  "BackendHttpSetting",
+            "properties": {
+              "Port": "[parameters('backendHttpSettings').backEndPort]",
+              "Protocol": "[if(parameters('backendHttpSettings').https, 'https', 'http')]",
+              "CookieBasedAffinity": "[parameters('backendHttpSettings').cookieAffinity]",
+              "AuthenticationCertificates": "[if(parameters('backendHttpSettings').https, variables('authenticationCertificate'), [])]"
+            }
+          }
+        ],
+        "redirectConfigurations": [
+          {
+            "Name": "httpsRedirect",
+            "properties": {
+              "redirectType": "Permanent",
+              "targetListener": {
+                "id": "[concat(variables('applicationGatewayID'), '/httpListeners/HttpListener')]"
+              }
+            }
+          }
+        ],
+        "httpListeners": [
+          {
+            "name": "HttpsListener",
+            "properties": {
+              "FrontendIPConfiguration": {
+                "Id": "[concat(variables('applicationGatewayID'), '/frontendIPConfigurations/appGatewayFrontendIP')]"
+              },
+              "FrontendPort": {
+                "Id": "[concat(variables('applicationGatewayID'), '/frontendPorts/FrontEndPort-HTTPS-443')]"
+              },
+              "Protocol": "Https",
+              "SslCertificate": {
+                "Id": "[concat(variables('applicationGatewayID'), '/sslCertificates/', parameters('frontendCertificateName'))]"
+              }
+            }
+          },
+          {
+            "name": "HttpListener",
+            "properties": {
+              "FrontendIPConfiguration": {
+                "Id": "[concat(variables('applicationGatewayID'), '/frontendIPConfigurations/appGatewayFrontendIP')]"
+              },
+              "FrontendPort": {
+                "Id": "[concat(variables('applicationGatewayID'), '/frontendPorts/FrontEndPort-HTTP-80')]"
+              },
+              "Protocol": "Http",
+              "SslCertificate": null
+            }
+          }
+        ],
+        "requestRoutingRules": [
+          {
+            "Name": "HTTPSRoute",
+            "properties": {
+              "RuleType": "Basic",
+              "httpListener": {
+                "id": "[concat(variables('applicationGatewayID'), '/httpListeners/HttpsListener')]"
+              },
+              "backendAddressPool": {
+                "id": "[concat(variables('applicationGatewayID'), '/backendAddressPools/DefaultBackendAddressPool')]"
+              },
+              "backendHttpSettings": {
+                "id": "[concat(variables('applicationGatewayID'), '/backendHttpSettingsCollection/BackendHttpSetting')]"
+              }
+            }
+          },
+          {
+            "Name": "HTTPRoute",
+            "properties": {
+              "RuleType": "Basic",
+              "httpListener": {
+                "id": "[concat(variables('applicationGatewayID'), '/httpListeners/HttpListener')]"
+              },
+              "redirectConfiguration": {
+                "id": "[concat(variables('applicationGatewayID'), '/redirectConfigurations/httpsRedirect')]"
+              }
+            }
+          }
+        ],
         "webApplicationFirewallConfiguration": {
           "enabled": true,
           "firewallMode": "[parameters('wafMode')]",

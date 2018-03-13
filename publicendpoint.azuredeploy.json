@@ -224,7 +224,7 @@
               "Port": "[parameters('backendHttpSettings').backEndPort]",
               "Protocol": "[if(parameters('backendHttpSettings').https, 'https', 'http')]",
               "CookieBasedAffinity": "[parameters('backendHttpSettings').cookieAffinity]",
-              "AuthenticationCertificates": "[if(parameters('backendHttpSettings').https, variables('authenticationCertificate'), variables('emptyList')]"
+              "AuthenticationCertificates": "[if(parameters('backendHttpSettings').https, variables('authenticationCertificate'), variables('emptyList'))]"
             }
           }
         ],

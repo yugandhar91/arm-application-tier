@@ -1,6 +1,6 @@
 {
     "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
-    "contentVersion": "4.1.30.0",
+    "contentVersion": "4.1.31.0",
     "parameters": {
         "applicationGatewayName": {
             "type": "string",
@@ -265,7 +265,7 @@
                 }
             }
         ],
-        "httpRedirects": "[if(parameters('privateIPConfig').enabled, union(variables('publicHTTPSRedirects'), variables('privateHTTPRedirects')), variables('publicHTTPSRedirects'))]",
+        "httpRedirects": "[if(parameters('privateIPConfig').enabled, union(variables('publicHTTPSRedirects'), variables('privateHTTPSRedirects')), variables('publicHTTPSRedirects'))]",
         "publicRoutingRules": [
             {
                 "Name": "publicHTTPSRoute",

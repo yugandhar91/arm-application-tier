@@ -184,7 +184,7 @@
         "frontendConfiguration": "[variables('frontendConfigurations')[string(parameters('privateIPConfig').enabled)]]",
         "publicHTTPListeners": [
             {
-                "name": "PublicHttpsListener",
+                "name": "publicHttpsListener",
                 "properties": {
                     "FrontendIPConfiguration": {
                         "Id": "[concat(variables('applicationGatewayID'), '/frontendIPConfigurations/appGatewayPublicFrontendConfig')]"
@@ -199,7 +199,7 @@
                 }
             },
             {
-                "name": "PublicHttpListener",
+                "name": "publicHttpListener",
                 "properties": {
                     "FrontendIPConfiguration": {
                         "Id": "[concat(variables('applicationGatewayID'), '/frontendIPConfigurations/appGatewayPublicFrontendConfig')]"
@@ -214,7 +214,7 @@
         ],
         "privateHTTPListeners": [
             {
-                "name": "PrivateHttpsListener",
+                "name": "privateHttpsListener",
                 "properties": {
                     "FrontendIPConfiguration": {
                         "Id": "[concat(variables('applicationGatewayID'), '/frontendIPConfigurations/appGatewayPrivateFrontendConfig')]"
@@ -229,7 +229,7 @@
                 }
             },
             {
-                "name": "PrivateHttpListener",
+                "name": "privateHttpListener",
                 "properties": {
                     "FrontendIPConfiguration": {
                         "Id": "[concat(variables('applicationGatewayID'), '/frontendIPConfigurations/appGatewayPrivateFrontendConfig')]"
@@ -242,7 +242,89 @@
                 }
             }
         ],
-        "httpListeners": "[if(parameters('privateIPConfig').enabled, union(variables('publicHTTPListeners'), variables('privateHTTPListeners')), variables('publicHTTPListeners'))]"
+        "httpListeners": "[if(parameters('privateIPConfig').enabled, union(variables('publicHTTPListeners'), variables('privateHTTPListeners')), variables('publicHTTPListeners'))]",
+        "publicHTTPSRedirects": [
+            {
+                "Name": "publicHttpsRedirect",
+                "properties": {
+                    "redirectType": "Permanent",
+                    "targetListener": {
+                        "id": "[concat(variables('applicationGatewayID'), '/httpListeners/publicHttpsListener')]"
+                    }
+                }
+            }
+        ],
+        "privateHTTPSRedirects": [
+            {
+                "Name": "privateHttpsRedirect",
+                "properties": {
+                    "redirectType": "Permanent",
+                    "targetListener": {
+                        "id": "[concat(variables('applicationGatewayID'), '/httpListeners/privateHttpsListener')]"
+                    }
+                }
+            }
+        ],
+        "httpRedirects": "[if(parameters('privateIPConfig').enabled, union(variables('publicHTTPRedirects'), variables('privateHTTPRedirects')), variables('publicHTTPRedirects'))]",
+        "publicRoutingRules": [
+            {
+                "Name": "publicHTTPSRoute",
+                "properties": {
+                    "RuleType": "Basic",
+                    "httpListener": {
+                        "id": "[concat(variables('applicationGatewayID'), '/httpListeners/publicHttpsListener')]"
+                    },
+                    "backendAddressPool": {
+                        "id": "[concat(variables('applicationGatewayID'), '/backendAddressPools/DefaultBackendAddressPool')]"
+                    },
+                    "backendHttpSettings": {
+                        "id": "[concat(variables('applicationGatewayID'), '/backendHttpSettingsCollection/BackendHttpSetting')]"
+                    }
+                }
+            },
+            {
+                "Name": "publicHTTPRoute",
+                "properties": {
+                    "RuleType": "Basic",
+                    "httpListener": {
+                        "id": "[concat(variables('applicationGatewayID'), '/httpListeners/publicHttpListener')]"
+                    },
+                    "redirectConfiguration": {
+                        "id": "[concat(variables('applicationGatewayID'), '/redirectConfigurations/publicHTTPSRedirect')]"
+                    }
+                }
+            }
+        ],
+        "privateRoutingRules": [
+            {
+                "Name": "privateHTTPSRoute",
+                "properties": {
+                    "RuleType": "Basic",
+                    "httpListener": {
+                        "id": "[concat(variables('applicationGatewayID'), '/httpListeners/privateHttpsListener')]"
+                    },
+                    "backendAddressPool": {
+                        "id": "[concat(variables('applicationGatewayID'), '/backendAddressPools/DefaultBackendAddressPool')]"
+                    },
+                    "backendHttpSettings": {
+                        "id": "[concat(variables('applicationGatewayID'), '/backendHttpSettingsCollection/BackendHttpSetting')]"
+                    }
+                }
+            },
+            {
+                "Name": "privateHTTPRoute",
+                "properties": {
+                    "RuleType": "Basic",
+                    "httpListener": {
+                        "id": "[concat(variables('applicationGatewayID'), '/httpListeners/privateHttpListener')]"
+                    },
+                    "redirectConfiguration": {
+                        "id": "[concat(variables('applicationGatewayID'), '/redirectConfigurations/privatehttpsRedirect')]"
+                    }
+                }
+            }
+        ],
+        "routingRules": "[if(parameters('privateIPConfig').enabled, union(variables('publicRoutingRules'), variables('privateRoutingRules')), variables('publicRoutingRules'))]"
     },
     "resources": [
         {
@@ -325,47 +407,9 @@
                         }
                     }
                 ],
-                "redirectConfigurations": [
-                    {
-                        "Name": "httpsRedirect",
-                        "properties": {
-                            "redirectType": "Permanent",
-                            "targetListener": {
-                                "id": "[concat(variables('applicationGatewayID'), '/httpListeners/HttpsListener')]"
-                            }
-                        }
-                    }
-                ],
+                "redirectConfigurations": "[variables('httpRedirects')]",
                 "httpListeners": "[variables('httpListeners')]",
-                "requestRoutingRules": [
-                    {
-                        "Name": "HTTPSRoute",
-                        "properties": {
-                            "RuleType": "Basic",
-                            "httpListener": {
-                                "id": "[concat(variables('applicationGatewayID'), '/httpListeners/HttpsListener')]"
-                            },
-                            "backendAddressPool": {
-                                "id": "[concat(variables('applicationGatewayID'), '/backendAddressPools/DefaultBackendAddressPool')]"
-                            },
-                            "backendHttpSettings": {
-                                "id": "[concat(variables('applicationGatewayID'), '/backendHttpSettingsCollection/BackendHttpSetting')]"
-                            }
-                        }
-                    },
-                    {
-                        "Name": "HTTPRoute",
-                        "properties": {
-                            "RuleType": "Basic",
-                            "httpListener": {
-                                "id": "[concat(variables('applicationGatewayID'), '/httpListeners/HttpListener')]"
-                            },
-                            "redirectConfiguration": {
-                                "id": "[concat(variables('applicationGatewayID'), '/redirectConfigurations/httpsRedirect')]"
-                            }
-                        }
-                    }
-                ],
+                "requestRoutingRules": "[variables('routingRules')]",
                 "webApplicationFirewallConfiguration": {
                     "enabled": true,
                     "firewallMode": "[parameters('wafMode')]",

@@ -210,7 +210,7 @@
                 }
             }
         ],
-        "frontendPorts": "[if(parameters('privateIPConfig').enabled, union(variables('publicFrontEndPorts'), variables('privateFrontEndPorts')), variables('publicFrontEndPorts'))]",
+        "frontendPorts": "[if(parameters('privateIPConfig').enabled, variables('privateFrontEndPorts'), variables('publicFrontEndPorts'))]",
         "publicHTTPListeners": [
             {
                 "name": "publicHttpsListener",
@@ -271,7 +271,7 @@
                 }
             }
         ],
-        "httpListeners": "[if(parameters('privateIPConfig').enabled, union(variables('publicHTTPListeners'), variables('privateHTTPListeners')), variables('publicHTTPListeners'))]",
+        "httpListeners": "[if(parameters('privateIPConfig').enabled, variables('privateHTTPListeners'), variables('publicHTTPListeners'))]",
         "publicHTTPSRedirects": [
             {
                 "Name": "publicHttpsRedirect",
@@ -294,7 +294,7 @@
                 }
             }
         ],
-        "httpRedirects": "[if(parameters('privateIPConfig').enabled, union(variables('publicHTTPSRedirects'), variables('privateHTTPSRedirects')), variables('publicHTTPSRedirects'))]",
+        "httpRedirects": "[if(parameters('privateIPConfig').enabled, variables('privateHTTPSRedirects'), variables('publicHTTPSRedirects'))]",
         "publicRoutingRules": [
             {
                 "Name": "publicHTTPSRoute",
@@ -353,7 +353,7 @@
                 }
             }
         ],
-        "routingRules": "[if(parameters('privateIPConfig').enabled, union(variables('publicRoutingRules'), variables('privateRoutingRules')), variables('publicRoutingRules'))]"
+        "routingRules": "[if(parameters('privateIPConfig').enabled, variables('privateRoutingRules'), variables('publicRoutingRules'))]"
     },
     "resources": [
         {

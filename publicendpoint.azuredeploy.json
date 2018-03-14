@@ -182,6 +182,35 @@
             ]
         },
         "frontendConfiguration": "[variables('frontendConfigurations')[string(parameters('privateIPConfig').enabled)]]",
+        "privateFrontEndPorts": [
+            {
+                "name": "privateFrontEndPort-HTTPS-443",
+                "properties": {
+                    "Port": 443
+                }
+            },
+            {
+                "name": "privateFrontEndPort-HTTP-80",
+                "properties": {
+                    "Port": 80
+                }
+            }
+        ],
+        "publicFrontEndPorts": [
+            {
+                "name": "publicFrontEndPort-HTTPS-443",
+                "properties": {
+                    "Port": 443
+                }
+            },
+            {
+                "name": "publicFrontEndPort-HTTP-80",
+                "properties": {
+                    "Port": 80
+                }
+            }
+        ],
+        "frontendPorts": "[if(parameters('privateIPConfig').enabled, union(variables('publicFrontEndPorts'), variables('privateFrontEndPorts')), variables('publicFrontEndPorts'))]",
         "publicHTTPListeners": [
             {
                 "name": "publicHttpsListener",
@@ -190,7 +219,7 @@
                         "Id": "[concat(variables('applicationGatewayID'), '/frontendIPConfigurations/appGatewayPublicFrontendConfig')]"
                     },
                     "FrontendPort": {
-                        "Id": "[concat(variables('applicationGatewayID'), '/frontendPorts/FrontEndPort-HTTPS-443')]"
+                        "Id": "[concat(variables('applicationGatewayID'), '/frontendPorts/publicFrontEndPort-HTTPS-443')]"
                     },
                     "Protocol": "Https",
                     "SslCertificate": {
@@ -205,7 +234,7 @@
                         "Id": "[concat(variables('applicationGatewayID'), '/frontendIPConfigurations/appGatewayPublicFrontendConfig')]"
                     },
                     "FrontendPort": {
-                        "Id": "[concat(variables('applicationGatewayID'), '/frontendPorts/FrontEndPort-HTTP-80')]"
+                        "Id": "[concat(variables('applicationGatewayID'), '/frontendPorts/publicFrontEndPort-HTTP-80')]"
                     },
                     "Protocol": "Http",
                     "SslCertificate": null
@@ -220,7 +249,7 @@
                         "Id": "[concat(variables('applicationGatewayID'), '/frontendIPConfigurations/appGatewayPrivateFrontendConfig')]"
                     },
                     "FrontendPort": {
-                        "Id": "[concat(variables('applicationGatewayID'), '/frontendPorts/FrontEndPort-HTTPS-443')]"
+                        "Id": "[concat(variables('applicationGatewayID'), '/frontendPorts/privateFrontEndPort-HTTPS-443')]"
                     },
                     "Protocol": "Https",
                     "SslCertificate": {
@@ -235,7 +264,7 @@
                         "Id": "[concat(variables('applicationGatewayID'), '/frontendIPConfigurations/appGatewayPrivateFrontendConfig')]"
                     },
                     "FrontendPort": {
-                        "Id": "[concat(variables('applicationGatewayID'), '/frontendPorts/FrontEndPort-HTTP-80')]"
+                        "Id": "[concat(variables('applicationGatewayID'), '/frontendPorts/privateFrontEndPort-HTTP-80')]"
                     },
                     "Protocol": "Http",
                     "SslCertificate": null
@@ -374,20 +403,7 @@
                 ],
                 "authenticationCertificates": "[variables('authenticationCertificateConfig')]",
                 "frontendIPConfigurations": "[variables('frontendConfiguration')]",
-                "frontendPorts": [
-                    {
-                        "name": "FrontEndPort-HTTPS-443",
-                        "properties": {
-                            "Port": 443
-                        }
-                    },
-                    {
-                        "name": "FrontEndPort-HTTP-80",
-                        "properties": {
-                            "Port": 80
-                        }
-                    }
-                ],
+                "frontendPorts": "[variables('frontendPorts')]",
                 "backendAddressPools": [
                     {
                         "name": "DefaultBackendAddressPool",

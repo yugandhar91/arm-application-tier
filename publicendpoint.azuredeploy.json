@@ -106,6 +106,13 @@
                 "dnsLabel": null
             }
         },
+        "privateIPConfig": {
+            "type": "object",
+            "defaultValue": {
+                "enabled": false,
+                "staticIP": "10.0.0.1"
+            }
+        },
         "backendHttpSettings": {
             "type": "object",
             "defaultValue": {
@@ -146,7 +153,35 @@
             ],
             "true": []
         },
-        "authenticationCertificateConfig": "[variables('authenticationCertificates')[string(empty(parameters('backendCertificatePublicKey')))]]"
+        "authenticationCertificateConfig": "[variables('authenticationCertificates')[string(empty(parameters('backendCertificatePublicKey')))]]",
+        "frontendPrivateConfig": {
+            "name": "appGatewayPrivateFrontendConfig",
+            "properties": {
+                "privateIPAddress": "[parameters('privateIPConfig').staticIP]",
+                "privateIPAllocationMethod": "Static",
+                "subnet": {
+                    "id": "[variables('subnetRef')]"
+                }
+            }
+        },
+        "frontendPublicConfig": {
+            "name": "appGatewayPublicFrontendConfig",
+            "properties": {
+                "PublicIPAddress": {
+                    "id": "[resourceId('Microsoft.Network/publicIPAddresses', variables('publicIPName'))]"
+                }
+            }
+        },
+        "frontendConfigurations": {
+          "true": [
+              "[variables('frontendPrivateConfig')]",
+              "[variables('frontendPublicConfig')]"
+          ],
+          "false": [
+              "[variables('frontendPublicConfig')]"
+          ]
+        },
+        "frontendConfiguration": "[variables('frontendConfigurations')[string(parameters('privateIPConfig').enabled)]]"
     },
     "resources": [
         {
@@ -195,16 +230,7 @@
                     }
                 ],
                 "authenticationCertificates": "[variables('authenticationCertificateConfig')]",
-                "frontendIPConfigurations": [
-                    {
-                        "name": "appGatewayFrontendIP",
-                        "properties": {
-                            "PublicIPAddress": {
-                                "id": "[resourceId('Microsoft.Network/publicIPAddresses', variables('publicIPName'))]"
-                            }
-                        }
-                    }
-                ],
+                "frontendIPConfigurations": "[variables('frontendConfiguration')]",
                 "frontendPorts": [
                     {
                         "name": "FrontEndPort-HTTPS-443",

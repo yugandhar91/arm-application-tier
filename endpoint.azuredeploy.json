@@ -459,6 +459,10 @@
               {
                 "category": "ApplicationGatewayPerformanceLog",
                 "enabled": true
+              },
+              {
+                "category": "ApplicationGatewayFirewallLog",
+                "enabled": true
               }
             ],
             "metrics": [

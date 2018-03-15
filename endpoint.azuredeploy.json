@@ -1,6 +1,6 @@
 {
   "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
-  "contentVersion": "4.2.1.0",
+  "contentVersion": "4.2.2.0",
   "parameters": {
     "applicationGatewayName": {
       "type": "string",
@@ -367,6 +367,7 @@
       "type": "Microsoft.Network/publicIPAddresses",
       "name": "[variables('publicIPName')]",
       "location": "[resourceGroup().location]",
+      "condition": "[not(parameters('privateIPConfig').enabled)]",
       "properties": {
         "publicIPAllocationMethod": "Dynamic",
         "dnsSettings": {

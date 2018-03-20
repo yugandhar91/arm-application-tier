@@ -418,7 +418,7 @@
         }
       }
     ],
-    "probes": "[if(parameters('customHealthCheck').enabled, variables('customProbes'), variables(emptyList'))]"
+    "probes": "[if(parameters('customHealthCheck').enabled, variables('customProbes'), variables('emptyList'))]"
   },
   "resources": [
     {

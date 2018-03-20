@@ -196,7 +196,7 @@
       ]
     },
     "lbRuleNameBase": "lbrule",
-    "firstLBRulePort": "[parameters('network').loadbalancing.rules.first.backendPort]",
+    "firstLBRulePort": "[parameters('network').loadbalancing.rules.first.port]",
     "firstLBRuleBackendPort": "[parameters('network').loadbalancing.rules.first.backendPort]",
     "firstLBRuleLoadDistribution": "[parameters('network').loadbalancing.rules.first.loadDistribution]",
     "firstLBRuleTimeout": "[parameters('network').loadbalancing.rules.first.timeout]",
@@ -221,7 +221,7 @@
         }
       }
     },
-    "secondLBRulePort": "[parameters('network').loadbalancing.rules.second.backendPort]",
+    "secondLBRulePort": "[parameters('network').loadbalancing.rules.second.port]",
     "secondLBRuleBackendPort": "[parameters('network').loadbalancing.rules.second.backendPort]",
     "secondLBRuleLoadDistribution": "[parameters('network').loadbalancing.rules.second.loadDistribution]",
     "secondLBRuleTimeout": "[parameters('network').loadbalancing.rules.second.timeout]",
@@ -263,8 +263,8 @@
       "properties": {
         "intervalInSeconds": 5,
         "numberOfProbes": 2,
-        "port": "[variables('firstLBRulePort')]",
-        "protocol": "Tcp"
+        "port": "[variables('firstLBRuleBackendPort')]",
+        "protocol": "[variables('firstLBRuleProtocol')]"
       }
     },
     "secondLBProbe": {
@@ -272,8 +272,8 @@
       "properties": {
         "intervalInSeconds": 5,
         "numberOfProbes": 2,
-        "port": "[variables('secondLBRulePort')]",
-        "protocol": "Tcp"
+        "port": "[variables('secondLBRuleBackendPort')]",
+        "protocol": "[variables('secondLBRuleProtocol')]"
       }
     },
     "lbProbes": {

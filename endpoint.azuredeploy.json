@@ -407,8 +407,8 @@
           "Host": "[parameters('customHealthCheck').Host]",
           "Interval": "[parameters('customHealthCheck').IntervalSeconds]",
           "Timeout": "[parameters('customHealthCheck').TimeoutSeconds]",
-          "UnhealthyThreshold": "[parameters('customHealthCheck').probeUnhealthyThreshold]",
-          "MinServers": "[parameters('customHealthCheck').probeMinServersAvailable]",
+          "UnhealthyThreshold": "[parameters('customHealthCheck').UnhealthyThreshold]",
+          "MinServers": "[parameters('customHealthCheck').MinServers]",
           "Match": {
             "StatusCodes": [
               "[parameters('customHealthCheck').healthyStatusCodes]"

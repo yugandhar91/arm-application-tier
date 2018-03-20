@@ -132,7 +132,7 @@
         "cookieAffinity": "Disabled"
       }
     },
-    "sslProtocol": {
+    "sslPolicy": {
       "type": "object",
       "defaultValue": {
         "policyType": "Custom",

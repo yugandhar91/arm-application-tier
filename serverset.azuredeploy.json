@@ -196,7 +196,7 @@
       ]
     },
     "lbRuleNameBase": "lbrule",
-    "firstLBRulePort": "[parameters('network').loadbalancing.rules.first.port]",
+    "firstLBRulePort": "[parameters('network').loadbalancing.rules.first.backendPort]",
     "firstLBRuleBackendPort": "[parameters('network').loadbalancing.rules.first.backendPort]",
     "firstLBRuleLoadDistribution": "[parameters('network').loadbalancing.rules.first.loadDistribution]",
     "firstLBRuleTimeout": "[parameters('network').loadbalancing.rules.first.timeout]",
@@ -221,7 +221,7 @@
         }
       }
     },
-    "secondLBRulePort": "[parameters('network').loadbalancing.rules.second.port]",
+    "secondLBRulePort": "[parameters('network').loadbalancing.rules.second.backendPort]",
     "secondLBRuleBackendPort": "[parameters('network').loadbalancing.rules.second.backendPort]",
     "secondLBRuleLoadDistribution": "[parameters('network').loadbalancing.rules.second.loadDistribution]",
     "secondLBRuleTimeout": "[parameters('network').loadbalancing.rules.second.timeout]",

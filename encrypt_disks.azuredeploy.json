@@ -34,7 +34,7 @@
       "type": "Microsoft.Compute/virtualMachines",
       "name": "[parameters('vmName')]",
       "location": "[resourceGroup().location]",
-      "condition": "[not(equals(parameters('keyVaultSecretUrl'), 'Encryption succeeded for data volumes'))]",
+      "condition": "[startsWith(parameters('keyVaultSecretUrl'), 'https://')]",
       "properties": {
         "storageProfile": {
           "osDisk": {

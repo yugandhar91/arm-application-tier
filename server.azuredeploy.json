@@ -1,6 +1,6 @@
 {
   "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
-  "contentVersion": "4.2.14.0",
+  "contentVersion": "4.2.15.0",
   "parameters": {
     "adminUserName": {
       "type": "string",
@@ -169,7 +169,7 @@
     }
   },
   "variables": {
-    "script_version": "4.2.14.0",
+    "script_version": "4.2.15.0",
     "namingInfix": "[toLower(concat(parameters('product').name, parameters('product').tier_name, '-'))]",
     "nicBaseName": "[concat(variables('namingInfix'),'nic')]",
     "vmBaseName": "[concat(variables('namingInfix'),'vm')]",
@@ -540,7 +540,7 @@
           }
         },
         "templateLink": {
-          "contentVersion": "4.2.14.0",
+          "contentVersion": "4.2.15.0",
           "uri": "[variables('serverEncryptionUodateTemplate')]"
         }
       }

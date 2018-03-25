@@ -1,6 +1,6 @@
 {
   "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
-  "contentVersion": "4.2.15.0",
+  "contentVersion": "4.2.16.0",
   "parameters": {
     "applicationGatewayName": {
       "type": "string",
@@ -121,7 +121,8 @@
       "type": "object",
       "defaultValue": {
         "enabled": false,
-        "staticIP": "10.0.0.1"
+        "staticIP": "10.0.0.1",
+        "attachPublicIP": false
       }
     },
     "backendHttpSettings": {
@@ -199,33 +200,31 @@
       ]
     },
     "authenticationCertificateConfig": "[variables('authenticationCertificates')[string(empty(parameters('backendCertificatePublicKey')))]]",
-    "frontendPrivateConfig": {
-      "name": "appGatewayPrivateFrontendConfig",
-      "properties": {
-        "privateIPAddress": "[parameters('privateIPConfig').staticIP]",
-        "privateIPAllocationMethod": "Static",
-        "subnet": {
-          "id": "[variables('subnetRef')]"
+    "frontendPrivateConfig": [
+      {
+        "name": "appGatewayPrivateFrontendConfig",
+        "properties": {
+          "privateIPAddress": "[parameters('privateIPConfig').staticIP]",
+          "privateIPAllocationMethod": "Static",
+          "subnet": {
+            "id": "[variables('subnetRef')]"
+          }
         }
       }
-    },
-    "frontendPublicConfig": {
-      "name": "appGatewayPublicFrontendConfig",
-      "properties": {
-        "PublicIPAddress": {
-          "id": "[resourceId('Microsoft.Network/publicIPAddresses', variables('publicIPName'))]"
+    ],
+    "frontendPublicConfig": [
+      {
+        "name": "appGatewayPublicFrontendConfig",
+        "properties": {
+          "PublicIPAddress": {
+            "id": "[resourceId('Microsoft.Network/publicIPAddresses', variables('publicIPName'))]"
+          }
         }
       }
-    },
-    "frontendConfigurations": {
-      "true": [
-        "[variables('frontendPrivateConfig')]"
-      ],
-      "false": [
-        "[variables('frontendPublicConfig')]"
-      ]
-    },
-    "frontendConfiguration": "[variables('frontendConfigurations')[string(parameters('privateIPConfig').enabled)]]",
+    ],
+    "attachPublicIP": "[or(not(parameters('privateIPConfig').enabled), parameters('privateIPConfig').attachPublicIP)]",
+    "primaryFrontendConfiguration": "[if(parameters('privateIPConfig').enabled), variables('frontendPrivateConfig'), variables('frontendPublicConfig'))]",
+    "frontendConfiguration": "[if(variables('attachPublicIP'), union(variables('primaryFrontendConfiguration'), variables('frontendPublicConfig')), variables('primaryFrontendConfiguration'))]",
     "privateFrontEndPorts": [
       {
         "name": "privateFrontEndPort-HTTPS-443",
@@ -453,7 +452,7 @@
       "type": "Microsoft.Network/publicIPAddresses",
       "name": "[variables('publicIPName')]",
       "location": "[resourceGroup().location]",
-      "condition": "[not(parameters('privateIPConfig').enabled)]",
+      "condition": "[variables('attachPublicIP')]",
       "properties": {
         "publicIPAllocationMethod": "Dynamic",
         "dnsSettings": {

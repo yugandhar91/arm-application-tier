@@ -1,6 +1,6 @@
 {
   "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
-  "contentVersion": "4.2.16.0",
+  "contentVersion": "4.2.17.0",
   "parameters": {
     "applicationGatewayName": {
       "type": "string",
@@ -223,7 +223,7 @@
       }
     ],
     "attachPublicIP": "[or(not(parameters('privateIPConfig').enabled), parameters('privateIPConfig').attachPublicIP)]",
-    "primaryFrontendConfiguration": "[if(parameters('privateIPConfig').enabled), variables('frontendPrivateConfig'), variables('frontendPublicConfig'))]",
+    "primaryFrontendConfiguration": "[if(parameters('privateIPConfig').enabled, variables('frontendPrivateConfig'), variables('frontendPublicConfig'))]",
     "frontendConfiguration": "[if(variables('attachPublicIP'), union(variables('primaryFrontendConfiguration'), variables('frontendPublicConfig')), variables('primaryFrontendConfiguration'))]",
     "privateFrontEndPorts": [
       {

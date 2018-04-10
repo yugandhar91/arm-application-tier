@@ -1,0 +1,559 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "contentVersion": "4.2.17.0",
+  "parameters": {
+    "applicationGatewayName": {
+      "type": "string",
+      "metadata": {
+        "description": "Application Gateway name"
+      }
+    },
+    "frontendCertificateName": {
+      "type": "securestring",
+      "metadata": {
+        "description": "certificate name"
+      }
+    },
+    "frontendCertificateData": {
+      "type": "securestring",
+      "metadata": {
+        "description": "Base64 enoded certificate .pfx file"
+      }
+    },
+    "frontendCertificatePassword": {
+      "type": "securestring",
+      "metadata": {
+        "description": "pfx certificate password"
+      }
+    },
+    "backendCertificatePublicKey": {
+      "type": "securestring",
+      "defaultValue": "",
+      "metadata": {
+        "description": "Base64 encoded certificate .pfx file containing the public key of the back-end https service"
+      }
+    },
+    "applicationGatewaySize": {
+      "type": "string",
+      "allowedValues": [
+        "WAF_Medium",
+        "WAF_Large"
+      ],
+      "defaultValue": "WAF_Medium",
+      "metadata": {
+        "description": "Application Gateway size"
+      }
+    },
+    "capacity": {
+      "type": "int",
+      "allowedValues": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10
+      ],
+      "defaultValue": 2,
+      "metadata": {
+        "description": "Number of instances"
+      }
+    },
+    "wafMode": {
+      "type": "string",
+      "allowedValues": [
+        "Detection",
+        "Prevention"
+      ],
+      "defaultValue": "Prevention",
+      "metadata": {
+        "description": "WAF Mode"
+      }
+    },
+    "omsSubscriptionID": {
+      "type": "string"
+    },
+    "omsResourceGroup": {
+      "type": "string"
+    },
+    "omsWorkspaceName": {
+      "type": "string"
+    },
+    "disabledOWASPRuleGroups": {
+      "type": "object",
+      "defaultValue": {
+        "rules": [
+
+        ]
+      },
+      "metadata": {
+        "description": "A list of disabled OWASP rule groups."
+      }
+    },
+    "backendAddresses": {
+      "type": "object",
+      "defaultValue": {
+        "addresses": [
+          "127.0.0.1",
+          "127.0.0.2"
+        ]
+      },
+      "metadata": {
+        "description": "A list of back-end servers to send traffic to. Can be a load balancer VIP."
+      }
+    },
+    "network": {
+      "type": "object",
+      "defaultValue": {
+        "vNet": {
+          "resourceGroup": "Not_Provided",
+          "name": "Not_Provided",
+          "subnetName": "Not_Provided"
+        },
+        "dnsLabel": null
+      }
+    },
+    "privateIPConfig": {
+      "type": "object",
+      "defaultValue": {
+        "enabled": false,
+        "staticIP": "10.0.0.1",
+        "attachPublicIP": false
+      }
+    },
+    "backendHttpSettings": {
+      "type": "object",
+      "defaultValue": {
+        "backEndPort": 443,
+        "https": true,
+        "cookieAffinity": "Disabled"
+      }
+    },
+    "sslPolicy": {
+      "type": "object",
+      "defaultValue": {
+        "policyType": "Custom",
+        "minProtocolVersion": "TLSv1_2",
+        "cipherSuites": [
+          "TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256",
+          "TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384",
+          "TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA",
+          "TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA",
+          "TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256",
+          "TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA384",
+          "TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384",
+          "TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256",
+          "TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA",
+          "TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA",
+          "TLS_RSA_WITH_AES_256_GCM_SHA384",
+          "TLS_RSA_WITH_AES_128_GCM_SHA256",
+          "TLS_RSA_WITH_AES_256_CBC_SHA256",
+          "TLS_RSA_WITH_AES_128_CBC_SHA256",
+          "TLS_RSA_WITH_AES_256_CBC_SHA",
+          "TLS_RSA_WITH_AES_128_CBC_SHA"
+        ]
+      }
+    },
+    "customHealthCheck": {
+      "type": "object",
+      "defaultValue": {
+        "enabled": false,
+        "Protocol": "https",
+        "Path": "/path/to/monitor",
+        "Host": "hostname.ncrsaaas.com",
+        "IntervalSeconds": 10,
+        "TimeoutSeconds": 60,
+        "UnhealthyThreshold": 10,
+        "MinServers": 0,
+        "healthyStatusCodes": "200-300"
+      }
+    }
+  },
+  "variables": {
+    "emptyList": [
+
+    ],
+    "publicIPName": "[concat(parameters('applicationGatewayName'), '-PublicIP')]",
+    "applicationGatewayID": "[resourceId('Microsoft.Network/applicationGateways', parameters('applicationGatewayName'))]",
+    "vnetId": "[resourceId(parameters('network').vNet.resourceGroup, 'Microsoft.Network/virtualNetworks', parameters('network').vNet.name)]",
+    "subnetRef": "[concat(variables('vnetId'), '/subnets/', parameters('network').vNet.subnetName)]",
+    "authenticationCertificate": [
+      {
+        "Id": "[concat(variables('applicationGatewayID'), '/authenticationCertificates/appGatewayBackendCert')]"
+      }
+    ],
+    "authenticationCertificates": {
+      "false": [
+        {
+          "properties": {
+            "data": "[parameters('backendCertificatePublicKey')]"
+          },
+          "name": "appGatewayBackendCert"
+        }
+      ],
+      "true": [
+
+      ]
+    },
+    "authenticationCertificateConfig": "[variables('authenticationCertificates')[string(empty(parameters('backendCertificatePublicKey')))]]",
+    "frontendPrivateConfig": [
+      {
+        "name": "appGatewayPrivateFrontendConfig",
+        "properties": {
+          "privateIPAddress": "[parameters('privateIPConfig').staticIP]",
+          "privateIPAllocationMethod": "Static",
+          "subnet": {
+            "id": "[variables('subnetRef')]"
+          }
+        }
+      }
+    ],
+    "frontendPublicConfig": [
+      {
+        "name": "appGatewayPublicFrontendConfig",
+        "properties": {
+          "PublicIPAddress": {
+            "id": "[resourceId('Microsoft.Network/publicIPAddresses', variables('publicIPName'))]"
+          }
+        }
+      }
+    ],
+    "attachPublicIP": "[or(not(parameters('privateIPConfig').enabled), parameters('privateIPConfig').attachPublicIP)]",
+    "primaryFrontendConfiguration": "[if(parameters('privateIPConfig').enabled, variables('frontendPrivateConfig'), variables('frontendPublicConfig'))]",
+    "frontendConfiguration": "[if(variables('attachPublicIP'), union(variables('primaryFrontendConfiguration'), variables('frontendPublicConfig')), variables('primaryFrontendConfiguration'))]",
+    "privateFrontEndPorts": [
+      {
+        "name": "privateFrontEndPort-HTTPS-443",
+        "properties": {
+          "Port": 443
+        }
+      },
+      {
+        "name": "privateFrontEndPort-HTTP-80",
+        "properties": {
+          "Port": 80
+        }
+      }
+    ],
+    "publicFrontEndPorts": [
+      {
+        "name": "publicFrontEndPort-HTTPS-443",
+        "properties": {
+          "Port": 443
+        }
+      },
+      {
+        "name": "publicFrontEndPort-HTTP-80",
+        "properties": {
+          "Port": 80
+        }
+      }
+    ],
+    "frontendPorts": "[if(parameters('privateIPConfig').enabled, variables('privateFrontEndPorts'), variables('publicFrontEndPorts'))]",
+    "publicHTTPListeners": [
+      {
+        "name": "publicHttpsListener",
+        "properties": {
+          "FrontendIPConfiguration": {
+            "Id": "[concat(variables('applicationGatewayID'), '/frontendIPConfigurations/appGatewayPublicFrontendConfig')]"
+          },
+          "FrontendPort": {
+            "Id": "[concat(variables('applicationGatewayID'), '/frontendPorts/publicFrontEndPort-HTTPS-443')]"
+          },
+          "Protocol": "Https",
+          "SslCertificate": {
+            "Id": "[concat(variables('applicationGatewayID'), '/sslCertificates/', parameters('frontendCertificateName'))]"
+          }
+        }
+      },
+      {
+        "name": "publicHttpListener",
+        "properties": {
+          "FrontendIPConfiguration": {
+            "Id": "[concat(variables('applicationGatewayID'), '/frontendIPConfigurations/appGatewayPublicFrontendConfig')]"
+          },
+          "FrontendPort": {
+            "Id": "[concat(variables('applicationGatewayID'), '/frontendPorts/publicFrontEndPort-HTTP-80')]"
+          },
+          "Protocol": "Http",
+          "SslCertificate": null
+        }
+      }
+    ],
+    "privateHTTPListeners": [
+      {
+        "name": "privateHttpsListener",
+        "properties": {
+          "FrontendIPConfiguration": {
+            "Id": "[concat(variables('applicationGatewayID'), '/frontendIPConfigurations/appGatewayPrivateFrontendConfig')]"
+          },
+          "FrontendPort": {
+            "Id": "[concat(variables('applicationGatewayID'), '/frontendPorts/privateFrontEndPort-HTTPS-443')]"
+          },
+          "Protocol": "Https",
+          "SslCertificate": {
+            "Id": "[concat(variables('applicationGatewayID'), '/sslCertificates/', parameters('frontendCertificateName'))]"
+          }
+        }
+      },
+      {
+        "name": "privateHttpListener",
+        "properties": {
+          "FrontendIPConfiguration": {
+            "Id": "[concat(variables('applicationGatewayID'), '/frontendIPConfigurations/appGatewayPrivateFrontendConfig')]"
+          },
+          "FrontendPort": {
+            "Id": "[concat(variables('applicationGatewayID'), '/frontendPorts/privateFrontEndPort-HTTP-80')]"
+          },
+          "Protocol": "Http",
+          "SslCertificate": null
+        }
+      }
+    ],
+    "httpListeners": "[if(parameters('privateIPConfig').enabled, variables('privateHTTPListeners'), variables('publicHTTPListeners'))]",
+    "publicHTTPSRedirects": [
+      {
+        "Name": "publicHttpsRedirect",
+        "properties": {
+          "redirectType": "Permanent",
+          "targetListener": {
+            "id": "[concat(variables('applicationGatewayID'), '/httpListeners/publicHttpsListener')]"
+          }
+        }
+      }
+    ],
+    "privateHTTPSRedirects": [
+      {
+        "Name": "privateHttpsRedirect",
+        "properties": {
+          "redirectType": "Permanent",
+          "targetListener": {
+            "id": "[concat(variables('applicationGatewayID'), '/httpListeners/privateHttpsListener')]"
+          }
+        }
+      }
+    ],
+    "httpRedirects": "[if(parameters('privateIPConfig').enabled, variables('privateHTTPSRedirects'), variables('publicHTTPSRedirects'))]",
+    "publicRoutingRules": [
+      {
+        "Name": "publicHTTPSRoute",
+        "properties": {
+          "RuleType": "Basic",
+          "httpListener": {
+            "id": "[concat(variables('applicationGatewayID'), '/httpListeners/publicHttpsListener')]"
+          },
+          "backendAddressPool": {
+            "id": "[concat(variables('applicationGatewayID'), '/backendAddressPools/DefaultBackendAddressPool')]"
+          },
+          "backendHttpSettings": {
+            "id": "[concat(variables('applicationGatewayID'), '/backendHttpSettingsCollection/BackendHttpSetting')]"
+          }
+        }
+      },
+      {
+        "Name": "publicHTTPRoute",
+        "properties": {
+          "RuleType": "Basic",
+          "httpListener": {
+            "id": "[concat(variables('applicationGatewayID'), '/httpListeners/publicHttpListener')]"
+          },
+          "redirectConfiguration": {
+            "id": "[concat(variables('applicationGatewayID'), '/redirectConfigurations/publicHTTPSRedirect')]"
+          }
+        }
+      }
+    ],
+    "privateRoutingRules": [
+      {
+        "Name": "privateHTTPSRoute",
+        "properties": {
+          "RuleType": "Basic",
+          "httpListener": {
+            "id": "[concat(variables('applicationGatewayID'), '/httpListeners/privateHttpsListener')]"
+          },
+          "backendAddressPool": {
+            "id": "[concat(variables('applicationGatewayID'), '/backendAddressPools/DefaultBackendAddressPool')]"
+          },
+          "backendHttpSettings": {
+            "id": "[concat(variables('applicationGatewayID'), '/backendHttpSettingsCollection/BackendHttpSetting')]"
+          }
+        }
+      },
+      {
+        "Name": "privateHTTPRoute",
+        "properties": {
+          "RuleType": "Basic",
+          "httpListener": {
+            "id": "[concat(variables('applicationGatewayID'), '/httpListeners/privateHttpListener')]"
+          },
+          "redirectConfiguration": {
+            "id": "[concat(variables('applicationGatewayID'), '/redirectConfigurations/privatehttpsRedirect')]"
+          }
+        }
+      }
+    ],
+    "routingRules": "[if(parameters('privateIPConfig').enabled, variables('privateRoutingRules'), variables('publicRoutingRules'))]",
+    "customProbes": [
+      {
+        "Name": "CustomProbe",
+        "properties": {
+          "Protocol": "[parameters('customHealthCheck').Protocol]",
+          "Path": "[parameters('customHealthCheck').Path]",
+          "Host": "[parameters('customHealthCheck').Host]",
+          "Interval": "[parameters('customHealthCheck').IntervalSeconds]",
+          "Timeout": "[parameters('customHealthCheck').TimeoutSeconds]",
+          "UnhealthyThreshold": "[parameters('customHealthCheck').UnhealthyThreshold]",
+          "MinServers": "[parameters('customHealthCheck').MinServers]",
+          "Match": {
+            "StatusCodes": [
+              "[parameters('customHealthCheck').healthyStatusCodes]"
+            ]
+          },
+          "PickHostNameFromBackendHttpSettings": false
+        }
+      }
+    ],
+    "probes": "[if(parameters('customHealthCheck').enabled, variables('customProbes'), variables('emptyList'))]",
+    "backendSettingsWithCustomProbe": [
+      {
+        "name": "BackendHttpSetting",
+        "properties": {
+          "Port": "[parameters('backendHttpSettings').backEndPort]",
+          "Protocol": "[if(parameters('backendHttpSettings').https, 'https', 'http')]",
+          "CookieBasedAffinity": "[parameters('backendHttpSettings').cookieAffinity]",
+          "AuthenticationCertificates": "[if(parameters('backendHttpSettings').https, variables('authenticationCertificate'), variables('emptyList'))]",
+          "ProbeEnabled": "[parameters('customHealthCheck').enabled]",
+          "Probe": {
+            "id": "[concat(variables('applicationGatewayID'), '/probes/CustomProbe')]"
+          }
+        }
+      }
+    ],
+    "backendSettingsWithoutCustomProbe": [
+      {
+        "name": "BackendHttpSetting",
+        "properties": {
+          "Port": "[parameters('backendHttpSettings').backEndPort]",
+          "Protocol": "[if(parameters('backendHttpSettings').https, 'https', 'http')]",
+          "CookieBasedAffinity": "[parameters('backendHttpSettings').cookieAffinity]",
+          "AuthenticationCertificates": "[if(parameters('backendHttpSettings').https, variables('authenticationCertificate'), variables('emptyList'))]"
+        }
+      }
+    ],
+    "backendHTTPSettings": "[if(parameters('customHealthCheck').enabled, variables('backendSettingsWithCustomProbe'), variables('backendSettingsWithoutCustomProbe'))]"
+  },
+  "resources": [
+    {
+      "apiVersion": "2015-05-01-preview",
+      "type": "Microsoft.Network/publicIPAddresses",
+      "name": "[variables('publicIPName')]",
+      "location": "[resourceGroup().location]",
+      "condition": "[variables('attachPublicIP')]",
+      "properties": {
+        "publicIPAllocationMethod": "Dynamic",
+        "dnsSettings": {
+          "domainNameLabel": "[parameters('network').dnsLabel]"
+        }
+      }
+    },
+    {
+      "apiVersion": "2017-06-01",
+      "name": "[parameters('applicationGatewayName')]",
+      "type": "Microsoft.Network/applicationGateways",
+      "location": "[resourceGroup().location]",
+      "dependsOn": [
+        "[resourceId('Microsoft.Network/publicIPAddresses', variables('publicIPName'))]"
+      ],
+      "properties": {
+        "sku": {
+          "name": "[parameters('applicationGatewaySize')]",
+          "tier": "WAF",
+          "capacity": "[parameters('capacity')]"
+        },
+        "sslCertificates": [
+          {
+            "name": "[parameters('frontendCertificateName')]",
+            "properties": {
+              "data": "[parameters('frontendCertificateData')]",
+              "password": "[parameters('frontendCertificatePassword')]"
+            }
+          }
+        ],
+        "gatewayIPConfigurations": [
+          {
+            "name": "[concat(parameters('applicationGatewayName'), '-IP-CONF')]",
+            "properties": {
+              "subnet": {
+                "id": "[variables('subnetRef')]"
+              }
+            }
+          }
+        ],
+        "authenticationCertificates": "[variables('authenticationCertificateConfig')]",
+        "frontendIPConfigurations": "[variables('frontendConfiguration')]",
+        "frontendPorts": "[variables('frontendPorts')]",
+        "backendAddressPools": [
+          {
+            "name": "DefaultBackendAddressPool",
+            "properties": {
+              "BackendAddresses": "[parameters('backendAddresses').addresses]"
+            }
+          }
+        ],
+        "probes": "[variables('probes')]",
+        "backendHttpSettingsCollection": "[variables('backendHTTPSettings')]",
+        "redirectConfigurations": "[variables('httpRedirects')]",
+        "httpListeners": "[variables('httpListeners')]",
+        "requestRoutingRules": "[variables('routingRules')]",
+        "webApplicationFirewallConfiguration": {
+          "enabled": true,
+          "firewallMode": "[parameters('wafMode')]",
+          "ruleSetType": "OWASP",
+          "ruleSetVersion": "3.0",
+          "disabledRuleGroups": "[parameters('disabledOWASPRuleGroups').rules]"
+        },
+        "sslPolicy": "[parameters('sslPolicy')]"
+      },
+      "resources": [
+        {
+          "apiVersion": "2015-07-01",
+          "type": "providers/diagnosticSettings",
+          "name": "Microsoft.Insights/service",
+          "location": "[resourceGroup().location]",
+          "dependsOn": [
+            "[resourceId('Microsoft.Network/applicationGateways', parameters('applicationGatewayName'))]"
+          ],
+          "properties": {
+            "workspaceId": "[resourceId(parameters('omsSubscriptionID'), parameters('omsResourceGroup'), 'Microsoft.OperationalInsights/workspaces', parameters('omsWorkspaceName'))]",
+            "logs": [
+              {
+                "category": "ApplicationGatewayAccessLog",
+                "enabled": true
+              },
+              {
+                "category": "ApplicationGatewayPerformanceLog",
+                "enabled": true
+              },
+              {
+                "category": "ApplicationGatewayFirewallLog",
+                "enabled": true
+              }
+            ],
+            "metrics": [
+              {
+                "timeGrain": "PT1M",
+                "enabled": true
+              }
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "outputs": {
+  }
+}

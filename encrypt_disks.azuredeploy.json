@@ -1,6 +1,6 @@
 {
   "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
-  "contentVersion": "4.0.27.0",
+  "contentVersion": "4.2.17.0",
   "parameters": {
     "vmName": {
       "type": "string",
@@ -34,7 +34,7 @@
       "type": "Microsoft.Compute/virtualMachines",
       "name": "[parameters('vmName')]",
       "location": "[resourceGroup().location]",
-      "condition": "[not(equals(parameters('keyVaultSecretUrl'), 'Encryption succeeded for data volumes'))]",
+      "condition": "[startsWith(parameters('keyVaultSecretUrl'), 'https://')]",
       "properties": {
         "storageProfile": {
           "osDisk": {
